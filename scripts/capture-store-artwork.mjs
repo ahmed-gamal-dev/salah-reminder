@@ -23,13 +23,14 @@ async function resize(target) {
   socket.addEventListener('message', event => { const d = JSON.parse(event.data); if (!pending.has(d.id)) return; const [resolve, reject] = pending.get(d.id); pending.delete(d.id); d.error ? reject(new Error(JSON.stringify(d.error))) : resolve(d.result); });
   const call = (method, params = {}) => new Promise((resolve, reject) => { const id = ++nextId; pending.set(id, [resolve, reject]); socket.send(JSON.stringify({ id, method, params })); });
   try {
-    await call('Emulation.setDeviceMetricsOverride', { width: 1366, height: 900, deviceScaleFactor: 1, mobile: false });
+    await call('Emulation.setDeviceMetricsOverride', { width: 1366, height: 900, deviceScaleFactor: 1, mobile: false, screenWidth: 1366, screenHeight: 900 });
+    await call('Emulation.setVisibleSize', { width: 1366, height: 900 });
     for (let i = 0; i < 12; i++) {
       const result = await call('Runtime.evaluate', { expression: 'Boolean(document.querySelector(\"h1\"))', returnByValue: true });
       if (result.result.value) break;
       await new Promise(resolve => setTimeout(resolve, 35));
     }
-    const shot = await call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: 0, y: 0, width: 1366, height: 900, scale: 1 } });
+    const shot = await call('Page.captureScreenshot', { format: 'png', fromSurface: true, captureBeyondViewport: false });
     captures.set(target.url.includes('/settings.html') ? 'settings-ar.png' : 'adhkar-ar.png', Buffer.from(shot.data, 'base64'));
   } finally { socket.close(); }
 }
