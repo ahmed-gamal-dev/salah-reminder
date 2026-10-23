@@ -3,6 +3,7 @@ const base = require('../package.json').build;
 const { identity, storeVersion } = require('../src/core/windows-store');
 module.exports = {
   ...base,
+  toolsets: { winCodeSign: '1.1.0' },
   extraMetadata: { version: storeVersion(require('../package.json').version) },
   directories: { ...base.directories, output: 'dist-store' },
   win: { ...base.win, target: [{ target: 'appx', arch: ['x64'] }], signExecutable: false },
