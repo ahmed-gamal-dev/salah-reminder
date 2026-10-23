@@ -132,6 +132,7 @@ function showBanner({ title, body, onClick, sound = false }, preview = false) {
 }
 ipcMain.on('overlay:dismiss', (e) => { if (overlay.owns(e)) overlay.collapse(); });
 ipcMain.on('overlay:stop', (e) => { if (overlay.owns(e)) { stopSound(); overlay.collapse(); } });
+ipcMain.on('overlay:interactive', (e, on) => { if (overlay.owns(e) && typeof on === 'boolean') overlay.setInteractive(on); });
 ipcMain.on('overlay:today', (e) => { if (overlay.owns(e)) overlay.toggleToday(); });
 ipcMain.on('overlay:open', (e) => { if (overlay.owns(e)) { const action = overlay.state.view === 'alert' ? bannerAction : openSettings; overlay.collapse(); if (action) action(); } });
 

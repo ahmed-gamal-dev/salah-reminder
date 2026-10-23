@@ -40,3 +40,7 @@ Small, focused PRs with a clear description. Use the screenshot helper to show U
 ```bash
 SALAH_SHOT=./docs/screenshots npm start
 ```
+
+## Native notch metrics (macOS)
+
+`build/notch-metrics.swift` reads AppKit safe-area geometry. `scripts/build-notch-helper.js` compiles it before packaging and before `npm start` (macOS only; requires Xcode Command Line Tools). The generated executable is ignored by Git and included in the packaged assets. Shared layout/hit-test geometry lives in `src/core/island-geometry.js`.

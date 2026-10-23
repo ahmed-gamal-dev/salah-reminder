@@ -6,3 +6,4 @@ out/
 .env
 coverage/
 dist-extension/
+assets/macos/notch-metrics

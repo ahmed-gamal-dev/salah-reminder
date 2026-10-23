@@ -6,17 +6,11 @@ function countdownClock(ms) {
     .map((n) => String(n).padStart(2, '0')).join(':');
 }
 
-/** Position below the camera/menu bar, with a small hit area when collapsed. */
-function overlayBounds(display, mode = 'compact') {
-  const { bounds, workArea } = display;
-  const sizes = { compact: [300, 54], today: [390, 380], alert: [420, 196] };
-  const [wantedWidth, wantedHeight] = sizes[mode] || sizes.compact;
-  const width = Math.min(wantedWidth, bounds.width - 24);
-  const y = Math.max(bounds.y + 38, workArea.y + 4);
-  return {
-    x: Math.round(bounds.x + (bounds.width - width) / 2), y, width,
-    height: Math.min(wantedHeight, bounds.y + bounds.height - y - 12),
-  };
+const { islandLayout } = require('./island-geometry');
+
+// The native window stays fixed; the black surface animates inside it.
+function overlayBounds(display, mode = 'compact', metrics) {
+  return islandLayout(display, metrics, mode).window;
 }
 
 /** State transitions are independent of Electron and the renderer. */

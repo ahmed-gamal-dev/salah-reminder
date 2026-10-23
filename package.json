@@ -1,7 +1,7 @@
 {
   "name": "salah-reminder",
   "productName": "Salah Reminder",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Offline prayer times and adhkar reminders for macOS, Windows and Linux — مواقيت الصلاة وتذكير الأذكار",
   "main": "src/main/index.js",
   "author": "Ahmed Gamal <44279509+ahmed-gamal-dev@users.noreply.github.com>",
@@ -17,7 +17,8 @@
     "dist:linux": "electron-builder --linux",
     "sounds": "node scripts/gen-sounds.js",
     "build:extension": "node scripts/build-extension.js",
-    "zip:extension": "node scripts/build-extension.js --zip"
+    "zip:extension": "node scripts/build-extension.js --zip",
+    "prestart": "node scripts/build-notch-helper.js"
   },
   "dependencies": {
     "adhan": "^4.4.6"
@@ -72,6 +73,7 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
     },
-    "afterPack": "build/adhoc-sign.js"
+    "afterPack": "build/adhoc-sign.js",
+    "beforePack": "scripts/build-notch-helper.js"
   }
 }
