@@ -12,6 +12,7 @@ const DEFAULTS = Object.freeze({
     preAdhanMinutes: 10, // 0 disables
     atAdhan: true,
     sound: 'adhan', // played at prayer time: 'adhan' | 'chime' | 'custom' | 'none'
+    topBanner: false, // optional macOS banner below the notch/menu bar
     volume: 0.8, // 0..1
     customSoundPath: '',
   },
@@ -71,6 +72,7 @@ function sanitize(input) {
       preAdhanMinutes: num(n.preAdhanMinutes, 0, 120, d.notifications.preAdhanMinutes),
       atAdhan: bool(n.atAdhan, d.notifications.atAdhan),
       sound: pick(n.sound, ['adhan', 'chime', 'custom', 'none'], d.notifications.sound),
+      topBanner: bool(n.topBanner, d.notifications.topBanner),
       volume: num(n.volume, 0, 1, d.notifications.volume),
       customSoundPath: typeof n.customSoundPath === 'string' ? n.customSoundPath : '',
     },

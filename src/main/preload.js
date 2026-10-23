@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('salah', {
   pickSound: () => ipcRenderer.invoke('sound:pick'),
   testNotification: () => ipcRenderer.invoke('notify:test'),
   getAdhkar: (category) => ipcRenderer.invoke('adhkar:get', category),
+  previewBanner: () => ipcRenderer.invoke('overlay:preview'),
   testSound: () => ipcRenderer.invoke('sound:test'),
   stopSound: () => ipcRenderer.invoke('sound:stop'),
   onPlaySound: (cb) => ipcRenderer.on('sound:play', (_e, payload) => cb(payload)),

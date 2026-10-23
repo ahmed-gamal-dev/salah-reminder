@@ -1,7 +1,7 @@
 {
   "name": "salah-reminder",
   "productName": "Salah Reminder",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Offline prayer times and adhkar reminders for macOS, Windows and Linux — مواقيت الصلاة وتذكير الأذكار",
   "main": "src/main/index.js",
   "author": "Ahmed Gamal <44279509+ahmed-gamal-dev@users.noreply.github.com>",

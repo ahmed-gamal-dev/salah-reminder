@@ -27,6 +27,7 @@ Offline prayer times and adhkar reminders that live in your menu bar / system tr
 - **Optional: lock the computer at prayer time** — off by default. Choose per prayer: *ask me* (Lock / Remind me in N min / Later) or *lock automatically* after a 15-second cancellable countdown. Uses the OS lock screen (`pmset displaysleepnow` on macOS — needs "Require password after sleep" enabled in System Settings, `LockWorkStation` on Windows, `loginctl lock-session` with fallbacks on Linux).
 - **Adhkar reminders:** morning (after Fajr), evening (after Asr) and after each prayer, with configurable delays. Click the notification to open a counter-based reader.
 - **Tray / menu bar:** next prayer + countdown (shown next to the icon on macOS; tooltip + menu on Windows/Linux), full day's times in the menu. Friday shows *Jumu'ah*.
+- **macOS top banner:** optional compact banner below the notch/menu bar for prayer and adhkar notifications. Preview it in Settings; it dismisses after 15 seconds, offers Open/Stop sound/Dismiss, and does not activate another app. Works on screens without a notch too. Enable macOS notifications under System Settings → Notifications → Salah Reminder.
 - **Launch at login**, Arabic (RTL) and English UI.
 
 ### Install
@@ -43,6 +44,8 @@ npm start          # tray app (opens Settings on first run)
 npm test           # unit tests
 npm run dist       # package for the current OS into dist/
 ```
+
+Local macOS verification: [release artifact, audio, notifications and banner](docs/verification/macos-2026-10-23.md).
 
 ### Releasing
 Push a tag (`git tag v0.1.0 && git push --tags`). GitHub Actions builds macOS, Windows and Linux packages and attaches them to a GitHub Release.
@@ -76,6 +79,7 @@ Adhan recording: ["Beautiful adhan.ogg"](https://commons.wikimedia.org/wiki/File
 - **اختياري: قفل الجهاز وقت الصلاة** — مغلق افتراضيًا. اختر لكل صلاة: «اسألني» (قفل / ذكّرني بعد دقائق / لاحقًا) أو «اقفل تلقائيًا» بعد عدّ تنازلي ١٥ ثانية قابل للإلغاء. على macOS فعّل «طلب كلمة المرور بعد السكون» ليكون القفل فعليًا.
 - **تذكير بالأذكار:** الصباح (بعد الفجر)، المساء (بعد العصر)، وبعد كل صلاة، بتأخير قابل للضبط. اضغط على التنبيه لفتح قارئ بعدّاد للتكرار.
 - **أيقونة الشريط/الصينية:** الصلاة القادمة والعد التنازلي (بجانب الأيقونة في macOS، وفي التلميح والقائمة على Windows/Linux)، ومواقيت اليوم كاملة في القائمة. يوم الجمعة يظهر «الجمعة».
+- **تنبيه تحت النوتش على الماك:** اختياري، للصلاة والأذكار، مع معاينة من الإعدادات وأزرار فتح وإيقاف الصوت وإغلاق. يختفي بعد ١٥ ثانية، ويظهر أيضًا أعلى الشاشات التي لا تحتوي على نوتش. فعّل إشعارات التطبيق من إعدادات النظام ← الإشعارات ← Salah Reminder.
 - **تشغيل تلقائي** مع بدء النظام، وواجهة عربية (RTL) وإنجليزية.
 
 ### التثبيت

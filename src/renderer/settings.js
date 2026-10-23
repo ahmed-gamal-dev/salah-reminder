@@ -7,6 +7,8 @@
       notif: 'التنبيهات', pre: 'تنبيه قبل الأذان (بالدقائق، 0 للإيقاف)', atAdhan: 'تنبيه عند دخول الوقت', sound: 'صوت وقت الصلاة', sAdhan: 'الأذان', sChime: 'تنبيه هادئ', sNone: 'بدون صوت', sCustom: 'ملف صوتي مخصص', pick: 'اختيار ملف…', test: 'تجربة تنبيه', testSound: 'تجربة الصوت', stopSound: 'إيقاف', volume: 'مستوى الصوت',
       action: 'عند دخول وقت الصلاة', aNone: 'لا شيء', aAsk: 'اسألني إن كنت أريد قفل الجهاز', aLock: 'اقفل الجهاز تلقائيًا (بعد 15 ثانية قابلة للإلغاء)', aWhich: 'الصلوات', aDelay: 'بعد دخول الوقت بـ', aSnooze: 'التذكير لاحقًا بعد',
       adhkar: 'الأذكار', morning: 'أذكار الصباح (بعد الفجر بـ)', evening: 'أذكار المساء (بعد العصر بـ)', after: 'أذكار بعد الصلاة (بعد الأذان بـ)', min: 'دقيقة', afterWhich: 'الصلوات',
+      notificationHint: 'على الماك: إعدادات النظام ← الإشعارات ← Salah Reminder ← السماح بالإشعارات.',
+      topBanner: 'تنبيه أعلى الشاشة تحت النوتش', previewBanner: 'معاينة',
       general: 'عام', language: 'اللغة', h12: 'نظام 12 ساعة', countdown: 'عرض العد التنازلي بجانب الأيقونة', autostart: 'التشغيل مع بدء النظام', saved: 'تم الحفظ تلقائيًا',
       methods: { egyptian: 'الهيئة المصرية العامة للمساحة', mwl: 'رابطة العالم الإسلامي', umm_al_qura: 'أم القرى (مكة)', karachi: 'جامعة العلوم الإسلامية بكراتشي', isna: 'أمريكا الشمالية (ISNA)', dubai: 'دبي', kuwait: 'الكويت', qatar: 'قطر', singapore: 'سنغافورة', turkey: 'ديانت (تركيا)', tehran: 'طهران', moonsighting: 'لجنة رؤية الهلال' },
       custom: 'موقع مخصص',
@@ -18,6 +20,8 @@
       notif: 'Notifications', pre: 'Reminder before adhan (minutes, 0 = off)', atAdhan: 'Notify at prayer time', sound: 'Sound at prayer time', sAdhan: 'Adhan', sChime: 'Soft chime', sNone: 'Silent', sCustom: 'Custom audio file', pick: 'Choose file…', test: 'Test notification', testSound: 'Test sound', stopSound: 'Stop', volume: 'Volume',
       action: 'When prayer time starts', aNone: 'Do nothing', aAsk: 'Ask whether to lock the computer', aLock: 'Lock the computer automatically (15 s cancellable countdown)', aWhich: 'Prayers', aDelay: 'Delay after prayer time', aSnooze: 'Remind again after',
       adhkar: 'Adhkar', morning: 'Morning adhkar (after Fajr by)', evening: 'Evening adhkar (after Asr by)', after: 'Adhkar after prayer (after adhan by)', min: 'min', afterWhich: 'Prayers',
+      notificationHint: 'macOS: System Settings → Notifications → Salah Reminder → Allow notifications.',
+      topBanner: 'Top banner below the notch', previewBanner: 'Preview',
       general: 'General', language: 'Language', h12: '12-hour clock', countdown: 'Show countdown next to the tray icon', autostart: 'Launch at login', saved: 'Saved automatically',
       methods: { egyptian: 'Egyptian General Authority of Survey', mwl: 'Muslim World League', umm_al_qura: 'Umm al-Qura (Makkah)', karachi: 'Univ. of Islamic Sciences, Karachi', isna: 'North America (ISNA)', dubai: 'Dubai', kuwait: 'Kuwait', qatar: 'Qatar', singapore: 'Singapore', turkey: 'Diyanet (Turkey)', tehran: 'Tehran', moonsighting: 'Moonsighting Committee' },
       custom: 'Custom location',
@@ -41,7 +45,7 @@
   function scheduleSave(statusEl) {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(async () => {
-      state.settings = await window.salah.save(state.settings);
+      await window.salah.save(state.settings);
       const fresh = await window.salah.getState();
       state.summary = fresh.summary;
       renderHero();
@@ -120,11 +124,12 @@
       el('h2', { textContent: t.notif }),
       el('div', { className: 'card' },
         row(t.pre, num(() => s.notifications.preAdhanMinutes, (v) => { s.notifications.preAdhanMinutes = v; }, 0, 120)),
-        row(t.atAdhan, check(() => s.notifications.atAdhan, (v) => { s.notifications.atAdhan = v; })),
+        ...(state.platform === 'darwin' ? [row(t.topBanner, check(() => s.notifications.topBanner, (v) => { s.notifications.topBanner = v; })), row('', el('button', { textContent: t.previewBanner, onclick: () => window.salah.previewBanner() }))] : []),
+        row(t.atAdhan, check(() => s.notifications.atAdhan, (v) => { s.notifications.atAdhan = v; }), state.platform === 'darwin' ? t.notificationHint : null),
         row(t.sound, select([['adhan', t.sAdhan], ['chime', t.sChime], ['custom', t.sCustom], ['none', t.sNone]], s.notifications.sound, (v) => { s.notifications.sound = v; })),
         row(t.volume, el('input', { type: 'range', min: 0, max: 1, step: 0.05, value: s.notifications.volume, onchange: change((i) => { s.notifications.volume = Number(i.value); }) })),
         el('div', { className: 'row' }, soundPick,
-          el('button', { textContent: t.testSound, onclick: async () => { state.settings = await window.salah.save(s); window.salah.testSound(); } }),
+          el('button', { textContent: t.testSound, onclick: async () => { await window.salah.save(s); window.salah.testSound(); } }),
           el('button', { textContent: t.stopSound, onclick: () => window.salah.stopSound() }),
           el('button', { textContent: t.test, onclick: () => window.salah.testNotification() }))),
       el('h2', { textContent: t.action }),

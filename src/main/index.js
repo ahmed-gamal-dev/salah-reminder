@@ -5,6 +5,7 @@ const { pathToFileURL } = require('url');
 const { execFile } = require('child_process');
 const { app, BrowserWindow, Tray, Menu, Notification, nativeImage, ipcMain, dialog, powerMonitor } = require('electron');
 
+const { PrayerOverlay } = require('./overlay');
 const { Store } = require('./store');
 const { setAutostart } = require('./autostart');
 const { detectLocation } = require('./geo');
@@ -33,6 +34,8 @@ app.setAppUserModelId('io.github.salah-reminder');
 
 let store, tray, reminder, settingsWin, adhkarWin, playerWin;
 let adhkarData;
+const overlay = new PrayerOverlay();
+let bannerAction = null;
 
 // ---------- windows ----------
 function openWindow(existing, file, { width, height, title, query }) {
@@ -56,7 +59,13 @@ function openWindow(existing, file, { width, height, title, query }) {
 }
 
 const openSettings = () => (settingsWin = openWindow(settingsWin, 'settings.html', { width: 560, height: 760, title: strings(store.get().language).app }));
-const openAdhkar = (category) => (adhkarWin = openWindow(adhkarWin, 'adhkar.html', { width: 520, height: 700, title: strings(store.get().language).categories[category], query: { category } }));
+const openAdhkar = (category) => {
+  if (adhkarWin && !adhkarWin.isDestroyed()) {
+    adhkarWin.loadFile(path.join(RENDERER, 'adhkar.html'), { query: { category } });
+    adhkarWin.setTitle(strings(store.get().language).categories[category]);
+  }
+  return (adhkarWin = openWindow(adhkarWin, 'adhkar.html', { width: 520, height: 700, title: strings(store.get().language).categories[category], query: { category } }));
+};
 
 // Menu-bar apps have no Dock icon; show it only while a window is open so the app is reachable and quittable.
 function syncDock() {
@@ -101,14 +110,29 @@ function stopSound() {
 
 // ---------- notifications ----------
 function notify({ title, body, onClick, sound = false }) {
+  showBanner({ title, body, onClick, sound });
   if (Notification.isSupported()) {
     // Sound is played by us (volume + custom files), never by the OS notification.
     const n = new Notification({ title, body, silent: true, icon: path.join(ASSETS, 'icon.png') });
     n.on('click', () => { if (sound) stopSound(); if (onClick) onClick(); });
+    n.on('show', () => console.log('Notification delivered:', title));
+    n.on('failed', (_e, error) => console.error('Notification failed:', error));
     n.show();
   }
   if (sound) playSound();
 }
+
+function showBanner({ title, body, onClick, sound = false }, preview = false) {
+  const settings = store.get();
+  if (process.platform !== 'darwin' || (!preview && !settings.notifications.topBanner)) return;
+  bannerAction = onClick || openSettings;
+  const ar = settings.language === 'ar';
+  overlay.show({ title, body, sound, language: settings.language,
+    open: ar ? 'فتح' : 'Open', stop: ar ? 'إيقاف الصوت' : 'Stop sound', dismiss: ar ? 'إغلاق' : 'Dismiss' });
+}
+ipcMain.on('overlay:dismiss', (e) => { if (overlay.owns(e)) overlay.hide(); });
+ipcMain.on('overlay:stop', (e) => { if (overlay.owns(e)) { stopSound(); overlay.hide(); } });
+ipcMain.on('overlay:open', (e) => { if (overlay.owns(e)) { overlay.hide(); if (bannerAction) bannerAction(); } });
 
 // ---------- prayer-time action (ask / lock) ----------
 const run = (cmd, args) => new Promise((resolve, reject) => execFile(cmd, args, (err) => (err ? reject(err) : resolve())));
@@ -232,6 +256,7 @@ ipcMain.handle('notify:test', () => {
   const s = strings(store.get().language);
   notify({ title: s.app, body: s.adhanBody });
 });
+ipcMain.handle('overlay:preview', () => { const s = strings(store.get().language); showBanner({ title: s.app, body: s.adhanBody }, true); });
 ipcMain.handle('sound:test', () => { playSound(); });
 ipcMain.handle('sound:stop', () => { stopSound(); });
 ipcMain.on('sound:ended', () => { playing = false; refreshTray(); });
