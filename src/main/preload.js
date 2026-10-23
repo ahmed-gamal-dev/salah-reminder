@@ -8,6 +8,11 @@ contextBridge.exposeInMainWorld('salah', {
   pickSound: () => ipcRenderer.invoke('sound:pick'),
   testNotification: () => ipcRenderer.invoke('notify:test'),
   getAdhkar: (category) => ipcRenderer.invoke('adhkar:get', category),
-  onPlaySound: (cb) => ipcRenderer.on('sound:play', (_e, url) => cb(url)),
+  testSound: () => ipcRenderer.invoke('sound:test'),
+  stopSound: () => ipcRenderer.invoke('sound:stop'),
+  onPlaySound: (cb) => ipcRenderer.on('sound:play', (_e, payload) => cb(payload)),
+  onStopSound: (cb) => ipcRenderer.on('sound:stop', () => cb()),
+  soundStarted: (info) => ipcRenderer.send('sound:started', info),
+  soundEnded: () => ipcRenderer.send('sound:ended'),
   onStateChanged: (cb) => ipcRenderer.on('state:changed', () => cb()),
 });

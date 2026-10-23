@@ -4,7 +4,8 @@
       title: 'مواقيت الصلاة والأذكار', next: 'الصلاة القادمة', today: 'مواقيت اليوم', loc: 'الموقع', city: 'المدينة', cityHint: 'اختر مدينة أو أدخل الإحداثيات يدويًا',
       detect: 'تحديد تلقائي (عبر الإنترنت)', detecting: 'جارٍ التحديد…', detectFail: 'تعذّر التحديد، اختر يدويًا', lat: 'خط العرض', lng: 'خط الطول', tz: 'المنطقة الزمنية (auto = جهازك)',
       calc: 'الحساب', method: 'طريقة الحساب', madhab: 'المذهب (العصر)', shafi: 'جمهور (الشافعي/المالكي/الحنبلي)', hanafi: 'حنفي', adj: 'تعديل يدوي بالدقائق',
-      notif: 'التنبيهات', pre: 'تنبيه قبل الأذان (بالدقائق، 0 للإيقاف)', atAdhan: 'تنبيه عند دخول الوقت', sound: 'الصوت', sDefault: 'صوت النظام', sNone: 'بدون صوت', sCustom: 'ملف صوتي مخصص', pick: 'اختيار ملف…', test: 'تجربة تنبيه',
+      notif: 'التنبيهات', pre: 'تنبيه قبل الأذان (بالدقائق، 0 للإيقاف)', atAdhan: 'تنبيه عند دخول الوقت', sound: 'صوت وقت الصلاة', sAdhan: 'الأذان', sChime: 'تنبيه هادئ', sNone: 'بدون صوت', sCustom: 'ملف صوتي مخصص', pick: 'اختيار ملف…', test: 'تجربة تنبيه', testSound: 'تجربة الصوت', stopSound: 'إيقاف', volume: 'مستوى الصوت',
+      action: 'عند دخول وقت الصلاة', aNone: 'لا شيء', aAsk: 'اسألني إن كنت أريد قفل الجهاز', aLock: 'اقفل الجهاز تلقائيًا (بعد 15 ثانية قابلة للإلغاء)', aWhich: 'الصلوات', aDelay: 'بعد دخول الوقت بـ', aSnooze: 'التذكير لاحقًا بعد',
       adhkar: 'الأذكار', morning: 'أذكار الصباح (بعد الفجر بـ)', evening: 'أذكار المساء (بعد العصر بـ)', after: 'أذكار بعد الصلاة (بعد الأذان بـ)', min: 'دقيقة', afterWhich: 'الصلوات',
       general: 'عام', language: 'اللغة', h12: 'نظام 12 ساعة', countdown: 'عرض العد التنازلي بجانب الأيقونة', autostart: 'التشغيل مع بدء النظام', saved: 'تم الحفظ تلقائيًا',
       methods: { egyptian: 'الهيئة المصرية العامة للمساحة', mwl: 'رابطة العالم الإسلامي', umm_al_qura: 'أم القرى (مكة)', karachi: 'جامعة العلوم الإسلامية بكراتشي', isna: 'أمريكا الشمالية (ISNA)', dubai: 'دبي', kuwait: 'الكويت', qatar: 'قطر', singapore: 'سنغافورة', turkey: 'ديانت (تركيا)', tehran: 'طهران', moonsighting: 'لجنة رؤية الهلال' },
@@ -14,7 +15,8 @@
       title: 'Salah Reminder', next: 'Next prayer', today: "Today's times", loc: 'Location', city: 'City', cityHint: 'Pick a city or enter coordinates manually',
       detect: 'Detect automatically (online)', detecting: 'Detecting…', detectFail: 'Could not detect — choose manually', lat: 'Latitude', lng: 'Longitude', tz: 'Time zone (auto = your system)',
       calc: 'Calculation', method: 'Calculation method', madhab: 'Madhab (Asr)', shafi: 'Standard (Shafi/Maliki/Hanbali)', hanafi: 'Hanafi', adj: 'Manual adjustment (minutes)',
-      notif: 'Notifications', pre: 'Reminder before adhan (minutes, 0 = off)', atAdhan: 'Notify at prayer time', sound: 'Sound', sDefault: 'System sound', sNone: 'Silent', sCustom: 'Custom audio file', pick: 'Choose file…', test: 'Test notification',
+      notif: 'Notifications', pre: 'Reminder before adhan (minutes, 0 = off)', atAdhan: 'Notify at prayer time', sound: 'Sound at prayer time', sAdhan: 'Adhan', sChime: 'Soft chime', sNone: 'Silent', sCustom: 'Custom audio file', pick: 'Choose file…', test: 'Test notification', testSound: 'Test sound', stopSound: 'Stop', volume: 'Volume',
+      action: 'When prayer time starts', aNone: 'Do nothing', aAsk: 'Ask whether to lock the computer', aLock: 'Lock the computer automatically (15 s cancellable countdown)', aWhich: 'Prayers', aDelay: 'Delay after prayer time', aSnooze: 'Remind again after',
       adhkar: 'Adhkar', morning: 'Morning adhkar (after Fajr by)', evening: 'Evening adhkar (after Asr by)', after: 'Adhkar after prayer (after adhan by)', min: 'min', afterWhich: 'Prayers',
       general: 'General', language: 'Language', h12: '12-hour clock', countdown: 'Show countdown next to the tray icon', autostart: 'Launch at login', saved: 'Saved automatically',
       methods: { egyptian: 'Egyptian General Authority of Survey', mwl: 'Muslim World League', umm_al_qura: 'Umm al-Qura (Makkah)', karachi: 'Univ. of Islamic Sciences, Karachi', isna: 'North America (ISNA)', dubai: 'Dubai', kuwait: 'Kuwait', qatar: 'Qatar', singapore: 'Singapore', turkey: 'Diyanet (Turkey)', tehran: 'Tehran', moonsighting: 'Moonsighting Committee' },
@@ -96,6 +98,8 @@
     const ap = s.adhkar.afterPrayer;
     const chips = el('div', { className: 'chips' }, PRAYERS.map((p) => el('label', {}, check(() => ap.prayers.includes(p), (v) => { ap.prayers = PRAYERS.filter((x) => (x === p ? v : ap.prayers.includes(x))); }), ' ', NAMES[s.language][p])));
 
+    const pa = s.prayerAction;
+    const paChips = el('div', { className: 'chips' }, PRAYERS.map((p) => el('label', {}, check(() => pa.prayers.includes(p), (v) => { pa.prayers = PRAYERS.filter((x) => (x === p ? v : pa.prayers.includes(x))); }), ' ', NAMES[s.language][p])));
     const soundPick = el('button', { textContent: t.pick, onclick: async () => { const f = await window.salah.pickSound(); if (f) { s.notifications.customSoundPath = f; s.notifications.sound = 'custom'; scheduleSave(status); render(); } } });
 
     app.replaceChildren(
@@ -117,8 +121,18 @@
       el('div', { className: 'card' },
         row(t.pre, num(() => s.notifications.preAdhanMinutes, (v) => { s.notifications.preAdhanMinutes = v; }, 0, 120)),
         row(t.atAdhan, check(() => s.notifications.atAdhan, (v) => { s.notifications.atAdhan = v; })),
-        row(t.sound, select([['default', t.sDefault], ['none', t.sNone], ['custom', t.sCustom]], s.notifications.sound, (v) => { s.notifications.sound = v; })),
-        el('div', { className: 'row' }, soundPick, el('button', { textContent: t.test, onclick: () => window.salah.testNotification() }))),
+        row(t.sound, select([['adhan', t.sAdhan], ['chime', t.sChime], ['custom', t.sCustom], ['none', t.sNone]], s.notifications.sound, (v) => { s.notifications.sound = v; })),
+        row(t.volume, el('input', { type: 'range', min: 0, max: 1, step: 0.05, value: s.notifications.volume, onchange: change((i) => { s.notifications.volume = Number(i.value); }) })),
+        el('div', { className: 'row' }, soundPick,
+          el('button', { textContent: t.testSound, onclick: async () => { state.settings = await window.salah.save(s); window.salah.testSound(); } }),
+          el('button', { textContent: t.stopSound, onclick: () => window.salah.stopSound() }),
+          el('button', { textContent: t.test, onclick: () => window.salah.testNotification() }))),
+      el('h2', { textContent: t.action }),
+      el('div', { className: 'card' },
+        row(t.action, select([['none', t.aNone], ['ask', t.aAsk], ['lock', t.aLock]], pa.mode, (v) => { pa.mode = v; })),
+        row(t.aDelay, el('span', {}, num(() => pa.delayMinutes, (v) => { pa.delayMinutes = v; }, 0, 60), ' ', t.min)),
+        row(t.aSnooze, el('span', {}, num(() => pa.snoozeMinutes, (v) => { pa.snoozeMinutes = v; }, 1, 60), ' ', t.min)),
+        el('div', { className: 'row' }, el('label', { textContent: t.aWhich }), paChips)),
       el('h2', { textContent: t.adhkar }),
       el('div', { className: 'card' },
         slotToggle(t.morning, s.adhkar.morning), slotToggle(t.evening, s.adhkar.evening), slotToggle(t.after, ap),

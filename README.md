@@ -23,7 +23,8 @@ Offline prayer times and adhkar reminders that live in your menu bar / system tr
 ### Features
 - **Offline calculation** with [adhan-js](https://github.com/batoulapps/adhan-js): Egyptian, Muslim World League, Umm al-Qura, Karachi, ISNA, Dubai, Kuwait, Qatar, Singapore, Turkey (Diyanet), Tehran, Moonsighting Committee; Shafi/Hanafi Asr; manual per-prayer minute adjustments; high-latitude handling.
 - **Location:** pick from 40+ built-in cities, enter coordinates, or press *Detect* (the only network call, user-initiated, IP-based).
-- **Notifications** before the adhan (configurable minutes) and at prayer time, with system sound, silent, or your own audio file.
+- **Notifications** before the adhan (configurable minutes) and at prayer time. At prayer time the app plays the **adhan** (bundled, CC0), a soft chime, your own audio file, or nothing, with a volume slider, a *Test sound* button and a *Stop* item in the tray menu. Sound plays even when no window is open.
+- **Optional: lock the computer at prayer time** — off by default. Choose per prayer: *ask me* (Lock / Remind me in N min / Later) or *lock automatically* after a 15-second cancellable countdown. Uses the OS lock screen (`pmset displaysleepnow` on macOS — needs "Require password after sleep" enabled in System Settings, `LockWorkStation` on Windows, `loginctl lock-session` with fallbacks on Linux).
 - **Adhkar reminders:** morning (after Fajr), evening (after Asr) and after each prayer, with configurable delays. Click the notification to open a counter-based reader.
 - **Tray / menu bar:** next prayer + countdown (shown next to the icon on macOS; tooltip + menu on Windows/Linux), full day's times in the menu. Friday shows *Jumu'ah*.
 - **Launch at login**, Arabic (RTL) and English UI.
@@ -31,7 +32,9 @@ Offline prayer times and adhkar reminders that live in your menu bar / system tr
 ### Install
 Download the installer for your OS from the [Releases](../../releases) page (`.dmg` macOS, `.exe` Windows, `.AppImage`/`.deb` Linux).
 
-> The builds are **not code-signed yet**. macOS: right-click the app → *Open* the first time (or `xattr -cr "/Applications/Salah Reminder.app"`). Windows: *More info → Run anyway* in SmartScreen.
+> The builds are **not notarized/code-signed yet** (macOS builds carry a valid ad-hoc signature). macOS: the first time, right-click the app → *Open*, or *System Settings → Privacy & Security → Open Anyway*, or run `xattr -cr "/Applications/Salah Reminder.app"`. Windows: *More info → Run anyway* in SmartScreen.
+>
+> **It lives in the menu bar / tray**, so nothing appears in the Dock at first. Launching the app opens the Settings window; the icon (a crescent) with the countdown is in the menu bar (on notched MacBooks it can hide behind the notch if the bar is crowded — quit a few menu-bar apps or use Bartender/Ice).
 
 ### Run from source
 ```bash
@@ -51,6 +54,7 @@ The text in [`data/adhkar.json`](data/adhkar.json) consists of Quran verses and 
 Calculated times can differ by a few minutes from your local mosque or official authority. Use the manual adjustment setting to match them.
 
 ### Credits
+Adhan recording: ["Beautiful adhan.ogg"](https://commons.wikimedia.org/wiki/File:Beautiful_adhan.ogg) by Adam-synagda, CC0 (Wikimedia Commons).<br>
 [adhan-js](https://github.com/batoulapps/adhan-js) (MIT) · [Electron](https://www.electronjs.org/) (MIT).
 
 ---
@@ -60,7 +64,8 @@ Calculated times can differ by a few minutes from your local mosque or official 
 ### المميزات
 - **حساب المواقيت بدون إنترنت** بمكتبة [adhan-js](https://github.com/batoulapps/adhan-js): الهيئة المصرية، رابطة العالم الإسلامي، أم القرى، كراتشي، أمريكا الشمالية، دبي، الكويت، قطر، سنغافورة، ديانت تركيا، طهران، لجنة رؤية الهلال، مع مذهب العصر (جمهور/حنفي) وتعديل يدوي بالدقائق لكل صلاة.
 - **الموقع:** اختر من أكثر من ٤٠ مدينة، أو أدخل الإحداثيات، أو اضغط «تحديد تلقائي» (الاتصال الوحيد بالإنترنت، وبطلبك فقط).
-- **تنبيهات** قبل الأذان (بعدد دقائق تضبطه) وعند دخول الوقت، بصوت النظام أو بدون صوت أو بملف صوتي من اختيارك.
+- **تنبيهات** قبل الأذان (بعدد دقائق تضبطه) وعند دخول الوقت. عند دخول الوقت يشغّل البرنامج **الأذان** (مرفق، ترخيص CC0) أو تنبيهًا هادئًا أو ملفًا صوتيًا من اختيارك أو لا شيء، مع التحكم في مستوى الصوت وزر «تجربة الصوت» وخيار «إيقاف الصوت» في القائمة. الصوت يعمل حتى لو لا توجد نافذة مفتوحة.
+- **اختياري: قفل الجهاز وقت الصلاة** — مغلق افتراضيًا. اختر لكل صلاة: «اسألني» (قفل / ذكّرني بعد دقائق / لاحقًا) أو «اقفل تلقائيًا» بعد عدّ تنازلي ١٥ ثانية قابل للإلغاء. على macOS فعّل «طلب كلمة المرور بعد السكون» ليكون القفل فعليًا.
 - **تذكير بالأذكار:** الصباح (بعد الفجر)، المساء (بعد العصر)، وبعد كل صلاة، بتأخير قابل للضبط. اضغط على التنبيه لفتح قارئ بعدّاد للتكرار.
 - **أيقونة الشريط/الصينية:** الصلاة القادمة والعد التنازلي (بجانب الأيقونة في macOS، وفي التلميح والقائمة على Windows/Linux)، ومواقيت اليوم كاملة في القائمة. يوم الجمعة يظهر «الجمعة».
 - **تشغيل تلقائي** مع بدء النظام، وواجهة عربية (RTL) وإنجليزية.
@@ -68,7 +73,9 @@ Calculated times can differ by a few minutes from your local mosque or official 
 ### التثبيت
 نزّل ملف التثبيت لنظامك من صفحة [Releases](../../releases) (`.dmg` للماك، `.exe` للويندوز، `.AppImage` أو `.deb` للينكس).
 
-> النسخ **غير موقّعة رقميًا حاليًا**. على macOS: كليك يمين على التطبيق ← «فتح» أول مرة (أو `xattr -cr "/Applications/Salah Reminder.app"`). على Windows: «مزيد من المعلومات ← تشغيل على أي حال».
+> النسخ **غير موثّقة/موقّعة رقميًا حاليًا**. على macOS: أول مرة كليك يمين على التطبيق ← «فتح»، أو من «إعدادات النظام ← الخصوصية والأمان ← فتح على أي حال»، أو نفّذ `xattr -cr "/Applications/Salah Reminder.app"`. على Windows: «مزيد من المعلومات ← تشغيل على أي حال».
+>
+> **البرنامج يعيش في شريط القوائم/الصينية** فلن تظهر أيقونة في الـ Dock في البداية. تشغيل التطبيق يفتح نافذة الإعدادات، وأيقونة الهلال مع العد التنازلي في شريط القوائم (في أجهزة MacBook ذات النوتش قد تختفي خلفها إذا كان الشريط مزدحمًا).
 
 ### التشغيل من الكود
 ```bash
@@ -77,6 +84,9 @@ npm start      # يفتح الإعدادات أول مرة
 npm test       # الاختبارات
 npm run dist   # بناء حزمة للنظام الحالي
 ```
+
+### مصدر صوت الأذان
+تسجيل «Beautiful adhan.ogg» من Wikimedia Commons بواسطة Adam-synagda، ترخيص CC0 (ملكية عامة). يمكنك استبداله بأي ملف تفضّله من الإعدادات.
 
 ### مصادر الأذكار
 نصوص [`data/adhkar.json`](data/adhkar.json) هي آيات قرآنية وألفاظ أحاديث من الكتب الستة (صحيح البخاري، صحيح مسلم، سنن أبي داود، جامع الترمذي، سنن النسائي، سنن ابن ماجه) كما جُمعت في «حصن المسلم» للشيخ سعيد بن وهف القحطاني. نص القرآن وألفاظ الأحاديث غير خاضعة لحقوق النشر، وهذا التجميع مرخّص بـ MIT. كل ذكر معه مرجعه. المعاني الإنجليزية من صياغتنا. **القائمة مختصرة ومتحفظة عمدًا — من لاحظ خطأ في لفظ أو عزو فليفتح issue، والمساهمات مرحّب بها.**

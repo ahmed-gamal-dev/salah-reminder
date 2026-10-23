@@ -2,6 +2,7 @@
 const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
+const { execFile } = require('child_process');
 const { app, BrowserWindow, Tray, Menu, Notification, nativeImage, ipcMain, dialog, powerMonitor } = require('electron');
 
 const { Store } = require('./store');
@@ -13,12 +14,16 @@ const { sanitize } = require('../core/settings');
 const { loadAdhkar, CATEGORIES } = require('../core/adhkar');
 const { strings, prayerName, isFriday } = require('../core/i18n');
 const { METHODS } = require('../core/prayer');
+const { lockScreen } = require('../core/lock');
 const cities = require('../../data/cities.json');
 
 const ROOT = path.join(__dirname, '..', '..');
 const ASSETS = path.join(ROOT, 'assets');
 const RENDERER = path.join(__dirname, '..', 'renderer');
 const SMOKE = process.env.SALAH_SMOKE === '1';
+// Test hook: SALAH_E2E=1 fast-forwards the clock to 4 s before the next prayer and logs what fires.
+const E2E = process.env.SALAH_E2E === '1';
+let clockOffset = 0;
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -42,8 +47,9 @@ function openWindow(existing, file, { width, height, title, query }) {
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
   win.removeMenu();
+  win.on('closed', syncDock);
   win.loadFile(path.join(RENDERER, file), query ? { query } : undefined);
-  win.once('ready-to-show', () => win.show());
+  win.once('ready-to-show', () => { win.show(); syncDock(); });
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-navigate', (e) => e.preventDefault());
   return win;
@@ -52,26 +58,86 @@ function openWindow(existing, file, { width, height, title, query }) {
 const openSettings = () => (settingsWin = openWindow(settingsWin, 'settings.html', { width: 560, height: 760, title: strings(store.get().language).app }));
 const openAdhkar = (category) => (adhkarWin = openWindow(adhkarWin, 'adhkar.html', { width: 520, height: 700, title: strings(store.get().language).categories[category], query: { category } }));
 
+// Menu-bar apps have no Dock icon; show it only while a window is open so the app is reachable and quittable.
+function syncDock() {
+  if (process.platform !== 'darwin' || !app.dock) return;
+  const open = [settingsWin, adhkarWin].some((w) => w && !w.isDestroyed() && w.isVisible());
+  if (open) app.dock.show(); else app.dock.hide();
+}
+
 function ensurePlayer() {
   if (playerWin && !playerWin.isDestroyed()) return playerWin;
-  playerWin = new BrowserWindow({ show: false, webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true, backgroundThrottling: false } });
+  playerWin = new BrowserWindow({ show: false, webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true, backgroundThrottling: false, autoplayPolicy: 'no-user-gesture-required' } });
   playerWin.loadFile(path.join(RENDERER, 'player.html'));
   return playerWin;
 }
 
+// ---------- sound ----------
+let playing = false;
+
+function soundFile(settings = store.get()) {
+  const { sound, customSoundPath } = settings.notifications;
+  if (sound === 'adhan') return path.join(ASSETS, 'sounds', 'adhan.ogg');
+  if (sound === 'chime') return path.join(ASSETS, 'sounds', 'chime.wav');
+  if (sound === 'custom' && customSoundPath && fs.existsSync(customSoundPath)) return customSoundPath;
+  return null;
+}
+
+function playSound() {
+  const settings = store.get();
+  const file = soundFile(settings);
+  if (!file) return false;
+  const win = ensurePlayer();
+  const send = () => { playing = true; win.webContents.send('sound:play', { url: pathToFileURL(file).href, volume: settings.notifications.volume }); refreshTray(); };
+  win.webContents.isLoading() ? win.webContents.once('did-finish-load', send) : send();
+  return true;
+}
+
+function stopSound() {
+  if (playerWin && !playerWin.isDestroyed()) playerWin.webContents.send('sound:stop');
+  playing = false;
+  refreshTray();
+}
+
 // ---------- notifications ----------
-function notify({ title, body, onClick }) {
-  if (!Notification.isSupported()) return;
-  const { notifications } = store.get();
-  const custom = notifications.sound === 'custom' && notifications.customSoundPath && fs.existsSync(notifications.customSoundPath);
-  const n = new Notification({ title, body, silent: notifications.sound !== 'default', icon: path.join(ASSETS, 'icon.png') });
-  if (onClick) n.on('click', onClick);
-  n.show();
-  if (custom) {
-    const win = ensurePlayer();
-    const send = () => win.webContents.send('sound:play', pathToFileURL(notifications.customSoundPath).href);
-    win.webContents.isLoading() ? win.webContents.once('did-finish-load', send) : send();
+function notify({ title, body, onClick, sound = false }) {
+  if (Notification.isSupported()) {
+    // Sound is played by us (volume + custom files), never by the OS notification.
+    const n = new Notification({ title, body, silent: true, icon: path.join(ASSETS, 'icon.png') });
+    n.on('click', () => { if (sound) stopSound(); if (onClick) onClick(); });
+    n.show();
   }
+  if (sound) playSound();
+}
+
+// ---------- prayer-time action (ask / lock) ----------
+const run = (cmd, args) => new Promise((resolve, reject) => execFile(cmd, args, (err) => (err ? reject(err) : resolve())));
+
+async function lockNow() {
+  const r = await lockScreen({ run, exists: fs.existsSync });
+  if (!r.ok) notify({ title: strings(store.get().language).lockFailed, body: r.errors.join('\n').slice(0, 200) });
+  return r;
+}
+
+async function handlePrayerAction(e, prayerLabel) {
+  const settings = store.get();
+  const s = strings(settings.language);
+  const snooze = settings.prayerAction.snoozeMinutes;
+  const win = BrowserWindow.getFocusedWindow() || undefined;
+  if (e.mode === 'lock') {
+    const ac = new AbortController();
+    const SECONDS = 15;
+    const timer = setTimeout(() => { ac.abort(); lockNow(); }, SECONDS * 1000);
+    try {
+      const { response } = await dialog.showMessageBox({ type: 'info', title: s.app, message: s.lockCountdownTitle(prayerLabel), detail: s.lockCountdownBody(SECONDS), buttons: [s.lockNow, s.cancel], defaultId: 1, cancelId: 1, signal: ac.signal });
+      clearTimeout(timer);
+      if (response === 0) lockNow();
+    } catch { /* aborted by the countdown: lockNow already ran */ }
+    return;
+  }
+  const { response } = await dialog.showMessageBox(win, { type: 'question', title: s.app, message: s.lockAskTitle(prayerLabel), detail: s.lockAskBody, buttons: [s.lockNow, s.remindIn(snooze), s.dismiss], defaultId: 0, cancelId: 2 });
+  if (response === 0) lockNow();
+  else if (response === 1) setTimeout(() => handlePrayerAction(e, prayerLabel), snooze * 60 * 1000);
 }
 
 function onEvent(e) {
@@ -80,7 +146,8 @@ function onEvent(e) {
   const friday = e.prayer ? isFriday(e.at, settings.location.timeZone) : false;
   const prayer = e.prayer ? prayerName(settings.language, e.prayer, { friday }) : '';
   if (e.type === 'pre-adhan') notify({ title: s.preAdhanTitle(prayer, e.minutes), body: s.preAdhanBody });
-  else if (e.type === 'adhan') notify({ title: s.adhanTitle(prayer), body: s.adhanBody });
+  else if (e.type === 'adhan') notify({ title: s.adhanTitle(prayer), body: s.adhanBody, sound: true });
+  else if (e.type === 'prayer-action') handlePrayerAction(e, prayer);
   else if (e.type === 'adhkar') notify({ title: s.adhkarTitle[e.category], body: s.adhkarBody, onClick: () => openAdhkar(e.category) });
 }
 
@@ -110,6 +177,7 @@ function refreshTray() {
     { label: s.menu.today, enabled: false },
     ...rows,
     { type: 'separator' },
+    ...(playing ? [{ label: s.stopAdhan, click: stopSound }, { type: 'separator' }] : []),
     { label: s.menu.adhkar, submenu: CATEGORIES.map((c) => ({ label: s.categories[c], click: () => openAdhkar(c) })) },
     { label: s.menu.settings, click: openSettings },
     { type: 'separator' },
@@ -164,12 +232,17 @@ ipcMain.handle('notify:test', () => {
   const s = strings(store.get().language);
   notify({ title: s.app, body: s.adhanBody });
 });
+ipcMain.handle('sound:test', () => { playSound(); });
+ipcMain.handle('sound:stop', () => { stopSound(); });
+ipcMain.on('sound:ended', () => { playing = false; refreshTray(); });
+ipcMain.on('sound:started', (_e, info) => { if (E2E) console.log(`E2E sound started duration=${info.duration.toFixed(1)}s volume=${info.volume}`); });
 
 ipcMain.handle('adhkar:get', (_e, category) => (CATEGORIES.includes(category) ? adhkarData[category] : []));
 
 // ---------- lifecycle ----------
 app.on('window-all-closed', () => { /* tray app: stay alive */ });
 app.on('second-instance', () => openSettings());
+app.on('activate', () => { if (app.isReady() && store) openSettings(); }); // clicking the Dock/Finder/Spotlight icon
 
 app.whenReady().then(() => {
   if (process.platform === 'darwin' && app.dock) app.dock.hide();
@@ -180,11 +253,17 @@ app.whenReady().then(() => {
   setAutostart(store.get().autostart);
 
   createTray();
-  reminder = new Reminder({ getSettings: () => store.get(), onEvent });
+  if (E2E) {
+    const next = buildSummary(new Date(), store.get()).next;
+    clockOffset = next.at.getTime() - 4000 - Date.now();
+    console.log(`E2E fast-forward to ${next.name}`);
+  }
+  reminder = new Reminder({ getSettings: () => store.get(), onEvent: (e) => { if (E2E) console.log(`E2E event ${e.id}`); onEvent(e); }, now: () => new Date(Date.now() + clockOffset) });
   reminder.start();
   powerMonitor.on('resume', () => { reminder.tick(); refreshTray(); });
 
   const hidden = process.argv.includes('--hidden');
+  if (E2E) setTimeout(() => app.quit(), 20000);
   if (SMOKE) {
     const sum = buildSummary(new Date(), store.get());
     console.log(`SMOKE next=${sum.next.name} in=${sum.next.countdown} title="${sum.trayTitle}"`);
@@ -193,7 +272,7 @@ app.whenReady().then(() => {
     return;
   }
   if (process.env.SALAH_SHOT) return captureScreenshots(process.env.SALAH_SHOT);
-  if (firstRun || (!hidden && !app.isPackaged)) openSettings();
+  if (!hidden && !E2E) openSettings(); // manual launch always shows a window; --hidden is used by launch-at-login
 });
 
 // Dev helper for README screenshots: SALAH_SHOT=<dir> npm start
