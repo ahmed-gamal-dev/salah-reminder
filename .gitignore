@@ -7,3 +7,10 @@ out/
 coverage/
 dist-extension/
 assets/macos/notch-metrics
+
+# Signing material and provisioning files stay outside the public repository.
+*.p12
+*.pfx
+*.p8
+*.provisionprofile
+*.mobileprovision
