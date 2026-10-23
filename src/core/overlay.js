@@ -15,21 +15,33 @@ function overlayBounds(display, mode = 'compact', metrics) {
 
 /** State transitions are independent of Electron and the renderer. */
 class OverlayState {
-  constructor() { this.enabled = false; this.view = 'compact'; this.alert = null; this.until = 0; this.playing = false; }
+  constructor() { this.enabled = false; this.view = 'compact'; this.alert = null; this.until = 0; this.playing = false; this.hovered = false; this.leaveAt = null; }
   configure(enabled) {
-    if (this.enabled && !enabled) this.collapse();
+    if (this.enabled && !enabled) this.collapse(true);
     this.enabled = enabled;
   }
-  notify(payload, now) { this.alert = payload; this.view = 'alert'; this.until = now + 15000; }
+  notify(payload, now) { if (this.playing && this.alert?.sound) return; this.alert = payload; this.view = 'alert'; this.until = now + 15000; }
   playback(active) {
-    if (this.playing && !active && this.view === 'alert' && this.alert?.sound) this.collapse();
+    const ended = this.playing && !active && this.view === 'alert' && this.alert?.sound;
     this.playing = active;
+    if (ended) { this.collapse(); if (this.hovered && this.enabled) this.view = 'today'; }
   }
   tick(now) {
     if (this.view === 'alert' && now >= this.until && !(this.alert?.sound && this.playing)) this.collapse();
   }
-  toggleToday() { if (this.view === 'today') this.collapse(); else this.view = 'today'; }
-  collapse() { this.view = 'compact'; this.alert = null; this.until = 0; }
+  hover(inside, now) {
+    if (inside) {
+      this.leaveAt = null;
+      if (!this.hovered && this.enabled && this.view === 'compact') this.view = 'today';
+    } else if (this.hovered) this.leaveAt = now + 300;
+    this.hovered = inside;
+    if (!inside && this.leaveAt !== null && now >= this.leaveAt) {
+      this.leaveAt = null;
+      if (this.view === 'today') this.collapse();
+    }
+  }
+  toggleToday() { if (this.playing && this.alert?.sound) return; if (this.view === 'today') this.collapse(); else this.view = 'today'; }
+  collapse(force = false) { if (!force && this.playing && this.alert?.sound) return; this.view = 'compact'; this.alert = null; this.until = 0; }
   get visible() { return this.enabled || this.alert !== null; }
 }
 module.exports = { overlayBounds, countdownClock, OverlayState };

@@ -25,6 +25,7 @@ window.banner.onContent((data) => {
   const focusWasInDetails = $('details').contains(document.activeElement);
   mode = data.mode;
   layout = data.layout;
+  document.body.dataset.notched = String(layout.gap > 0);
   pointer = data.cursor;
   for (const [key, value] of Object.entries({ 'island-w': layout.width, 'island-h': layout.height, 'camera-gap': layout.gap, 'header-h': layout.header, radius: layout.radius })) {
     document.body.style.setProperty(`--${key}`, `${value}px`);
@@ -62,6 +63,7 @@ window.banner.onContent((data) => {
   $('stop').hidden = !data.playing;
   $('quick-stop').hidden = !data.playing || mode !== 'compact';
   $('dismiss').textContent = data.dismiss;
+  $('dismiss').hidden = data.playing && mode === 'alert';
   const key = JSON.stringify(data.rows);
   if (key !== rowsKey) {
     rowsKey = key;

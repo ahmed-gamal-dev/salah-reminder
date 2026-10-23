@@ -12,9 +12,9 @@
     const header = Math.ceil(Math.max(34, notch.height + 4));
     const windowWidth = Math.min(b.width, Math.max(620, gap + 240));
     const windowHeight = Math.min(b.height, header + 390);
-    const compactWidth = Math.min(windowWidth - 16, Math.max(280, gap + 216));
+    const compactWidth = Math.min(windowWidth - 16, (notch.width > 0 ? notch.width : 280));
     const sizes = {
-      compact: [compactWidth, header],
+      compact: [compactWidth, notch.width > 0 ? notch.height : header],
       today: [Math.min(windowWidth - 16, Math.max(500, compactWidth + 60)), Math.min(windowHeight - 12, header + 342)],
       alert: [Math.min(windowWidth - 16, Math.max(480, compactWidth + 40)), Math.min(windowHeight - 12, header + 144)],
     };

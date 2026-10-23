@@ -8,6 +8,8 @@ const { islandLayout } = require('../core/island-geometry');
 class PrayerOverlay {
   constructor() {
     this.win = null; this.state = new OverlayState(); this.summary = null; this.settings = null; this.now = new Date();
+    this.hoverTimer = setInterval(() => this.trackHover(), 80);
+    this.hoverTimer.unref();
     this.metrics = new Map(); this.metricsReady = false; this.loadingMetrics = false; this.eventsBound = false;
   }
   update(summary, settings, now, playing) {
@@ -80,6 +82,19 @@ class PrayerOverlay {
       title: this.state.alert?.title || '', body: this.state.alert?.body || '',
     });
     if (!this.win.isVisible()) this.win.showInactive();
+  }
+  trackHover() {
+    if (!this.metricsReady || !this.state.visible || !this.win || this.win.isDestroyed() || !this.win.isVisible()) return;
+    const display = this.display();
+    const layout = islandLayout(display, this.metrics.get(display.id), this.state.view);
+    const cursor = screen.getCursorScreenPoint();
+    // Include the physical camera in hover detection; it cannot receive renderer mouse events.
+    const left = layout.window.x + (layout.window.width - layout.width) / 2;
+    const inside = cursor.x >= left && cursor.x <= left + layout.width &&
+      cursor.y >= layout.window.y && cursor.y <= layout.window.y + layout.height;
+    const before = this.state.view;
+    this.state.hover(inside, Date.now());
+    if (before !== this.state.view) this.present();
   }
   owns(event) { return this.win && !this.win.isDestroyed() && event.sender === this.win.webContents; }
 }
