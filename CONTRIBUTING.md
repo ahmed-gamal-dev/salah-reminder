@@ -21,6 +21,7 @@ Requires Node 20+.
 | `src/core/` | Pure logic, no Electron: prayer times (`prayer.js`), reminder scheduling (`scheduler.js`), settings validation, i18n, tray summary. **Keep it pure and tested.** |
 | `src/main/` | Electron main process: tray, notifications, autostart, IPC |
 | `src/renderer/` | Settings and adhkar windows (plain HTML/JS, strict CSP, no framework) |
+| `extension/` | Chrome/Firefox MV3 extension; bundled by `scripts/build-extension.js`, reuses `src/core` and `data/` |
 | `data/adhkar.json` | Adhkar text + sources |
 | `data/cities.json` | Built-in city presets |
 

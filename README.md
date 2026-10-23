@@ -47,6 +47,14 @@ npm run dist       # package for the current OS into dist/
 ### Releasing
 Push a tag (`git tag v0.1.0 && git push --tags`). GitHub Actions builds macOS, Windows and Linux packages and attaches them to a GitHub Release.
 
+### Browser extension (Chrome & Firefox)
+A lightweight companion lives in [`extension/`](extension/) (Manifest V3, one codebase for both browsers). It shares the prayer-time engine (`src/core`) and the adhkar/city data (`data/`) with the desktop app.
+
+- **v1:** popup with today's times, next prayer and countdown (also on the toolbar badge); notifications before and at the adhan; morning/evening/after-prayer adhkar reminders with a counter-based reader; options page (city/coordinates, method, madhab, language).
+- **Not in v1:** adhan audio (Chrome MV3 needs an offscreen document — planned for v2) and locking the computer (browsers cannot do that; use the desktop app).
+- Build: `npm run build:extension` (folders in `dist-extension/chrome` and `dist-extension/firefox`) or `npm run zip:extension` (zips; CI attaches them to every release). Load unpacked: Chrome → `chrome://extensions` → *Developer mode* → *Load unpacked*; Firefox → `about:debugging` → *Load Temporary Add-on* → pick `manifest.json`.
+- Not published to the Chrome Web Store / AMO yet.
+
 ### Adhkar sources
 The text in [`data/adhkar.json`](data/adhkar.json) consists of Quran verses and hadith wording from the six canonical collections (Sahih al-Bukhari, Sahih Muslim, Sunan Abi Dawud, Jami' at-Tirmidhi, Sunan an-Nasa'i, Ibn Majah), as compiled in *Hisn al-Muslim* (Sa'id ibn Wahf al-Qahtani). Quran text and hadith wording are not under copyright; this project's compilation is MIT-licensed. Each item carries its own reference. English meanings are our own paraphrase. **Please report any wording or reference error** by opening an issue — the list is intentionally small and conservative; contributions welcome (see [CONTRIBUTING](CONTRIBUTING.md)).
 
@@ -84,6 +92,14 @@ npm start      # يفتح الإعدادات أول مرة
 npm test       # الاختبارات
 npm run dist   # بناء حزمة للنظام الحالي
 ```
+
+### إضافة المتصفح (Chrome وFirefox)
+إضافة خفيفة في مجلد [`extension/`](extension/) (Manifest V3، كود واحد للمتصفحين) تشارك التطبيق محرك حساب المواقيت (`src/core`) وبيانات الأذكار والمدن (`data/`).
+
+- **النسخة الأولى:** نافذة منبثقة بمواقيت اليوم والصلاة القادمة والعد التنازلي (وعلى شارة الأيقونة)، تنبيهات قبل الأذان وعنده، تذكير بأذكار الصباح والمساء وبعد الصلاة مع قارئ بعدّاد، وصفحة إعدادات (المدينة/الإحداثيات، الطريقة، المذهب، اللغة).
+- **ليس في النسخة الأولى:** صوت الأذان (يحتاج offscreen document في Chrome — مخطط للإصدار الثاني)، وقفل الجهاز (المتصفح لا يستطيع؛ استخدم تطبيق سطح المكتب).
+- البناء: `npm run build:extension` أو `npm run zip:extension`. للتجربة: Chrome ← `chrome://extensions` ← وضع المطوّر ← «تحميل غير معبأ»؛ Firefox ← `about:debugging` ← «Load Temporary Add-on».
+- غير منشورة على متجر Chrome ولا AMO حاليًا.
 
 ### مصدر صوت الأذان
 تسجيل «Beautiful adhan.ogg» من Wikimedia Commons بواسطة Adam-synagda، ترخيص CC0 (ملكية عامة). يمكنك استبداله بأي ملف تفضّله من الإعدادات.
