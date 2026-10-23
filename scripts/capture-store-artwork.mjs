@@ -3,8 +3,10 @@
 import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-const [exe, output] = process.argv.slice(2);
-if (!exe || !output) throw new Error('Usage: node capture-store-artwork.mjs <exe> <output>');
+const [inputExe, inputOutput] = process.argv.slice(2);
+if (!inputExe || !inputOutput) throw new Error('Usage: node capture-store-artwork.mjs <exe> <output>');
+const exe = path.resolve(inputExe), output = path.resolve(inputOutput);
+await fs.access(exe);
 await fs.mkdir(output, { recursive: true });
 const child = spawn(exe, ['--remote-debugging-address=127.0.0.1', '--remote-debugging-port=9225'], {
   env: { ...process.env, SALAH_SHOT: output }, stdio: 'inherit',
