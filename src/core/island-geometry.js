@@ -14,7 +14,7 @@
     const windowHeight = Math.min(b.height, header + 390);
     const compactWidth = Math.min(windowWidth - 16, (notch.width > 0 ? notch.width : 280));
     const sizes = {
-      compact: [compactWidth, notch.width > 0 ? notch.height : header],
+      compact: [compactWidth, notch.width > 0 ? notch.height + 24 : header],
       today: [Math.min(windowWidth - 16, Math.max(500, compactWidth + 60)), Math.min(windowHeight - 12, header + 342)],
       alert: [Math.min(windowWidth - 16, Math.max(480, compactWidth + 40)), Math.min(windowHeight - 12, header + 144)],
     };

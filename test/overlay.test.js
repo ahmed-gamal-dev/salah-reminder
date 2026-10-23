@@ -92,7 +92,7 @@ describe('camera-safe island geometry and click-through', () => {
     const l = islandLayout(d, { width: 185, height: 33.5 });
     expect(l.gap).toBeGreaterThan(185);
     expect(l.header).toBeGreaterThan(33.5);
-    expect(l.width).toBe(185); expect(l.height).toBe(33.5);
+    expect(l.width).toBe(185); expect(l.height).toBe(57.5);
   });
   it('has no empty camera gap on a display known to have no notch', () => {
     const d = { bounds: { x: -1920, y: -1080, width: 1920, height: 1080 }, workArea: { y: -1050 } };

@@ -39,6 +39,9 @@ window.banner.onContent((data) => {
   document.body.dataset.mode = mode;
   $('next').textContent = data.next;
   $('countdown').textContent = data.countdown;
+  $('compact-countdown').textContent = data.countdown;
+  $('compact-clock').hidden = !(layout.gap > 0 && mode === 'compact');
+  $('compact-clock').setAttribute('aria-label', `${data.nextLabel}: ${data.next}. ${data.countdown}. ${data.today}`);
   $('toggle').setAttribute('aria-label', `${data.nextLabel}: ${data.next}. ${data.today}`);
   $('toggle').setAttribute('aria-expanded', String(mode !== 'compact'));
   $('toggle-name').setAttribute('aria-expanded', String(mode !== 'compact'));
@@ -78,7 +81,7 @@ window.banner.onContent((data) => {
   // Keyboard focus returns to the summary when collapsing a panel containing focused buttons.
   if (changed && mode === 'compact' && focusWasInDetails) $('toggle').focus();
 });
-for (const id of ['toggle', 'toggle-name']) $(id).addEventListener('click', () => window.banner.toggleToday());
+for (const id of ['toggle', 'toggle-name', 'compact-clock']) $(id).addEventListener('click', () => window.banner.toggleToday());
 $('open').addEventListener('click', () => window.banner.open());
 for (const id of ['stop', 'quick-stop']) $(id).addEventListener('click', () => window.banner.stop());
 $('dismiss').addEventListener('click', () => window.banner.dismiss());
