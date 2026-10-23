@@ -46,3 +46,19 @@ describe('bundled data', () => {
     }
   });
 });
+
+describe('prayerAction + sound settings', () => {
+  it('defaults to doing nothing and playing the adhan at 80%', () => {
+    const s = sanitize({});
+    expect(s.prayerAction.mode).toBe('none');
+    expect(s.notifications.sound).toBe('adhan');
+    expect(s.notifications.volume).toBe(0.8);
+  });
+  it('validates mode, prayers, delays and volume', () => {
+    const s = sanitize({ prayerAction: { mode: 'lock', prayers: ['isha', 'x'], delayMinutes: 999, snoozeMinutes: 0 }, notifications: { volume: 4, sound: 'default' } });
+    expect(s.prayerAction).toEqual({ mode: 'lock', prayers: ['isha'], delayMinutes: 60, snoozeMinutes: 1 });
+    expect(s.notifications.volume).toBe(1);
+    expect(s.notifications.sound).toBe('adhan'); // legacy/unknown value falls back
+    expect(sanitize({ prayerAction: { mode: 'explode' } }).prayerAction.mode).toBe('none');
+  });
+});

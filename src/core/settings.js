@@ -11,9 +11,12 @@ const DEFAULTS = Object.freeze({
   notifications: {
     preAdhanMinutes: 10, // 0 disables
     atAdhan: true,
-    sound: 'default', // 'default' | 'none' | 'custom'
+    sound: 'adhan', // played at prayer time: 'adhan' | 'chime' | 'custom' | 'none'
+    volume: 0.8, // 0..1
     customSoundPath: '',
   },
+  // What to do when prayer time starts: nothing, ask whether to lock the computer, or lock it (after a short cancellable countdown).
+  prayerAction: { mode: 'none', prayers: [...PRAYERS], delayMinutes: 0, snoozeMinutes: 5 },
   adhkar: {
     morning: { enabled: true, offsetMinutes: 30 }, // after Fajr
     evening: { enabled: true, offsetMinutes: 15 }, // after Asr
@@ -50,6 +53,7 @@ function sanitize(input) {
     const v = isObj(a[key]) ? a[key] : {};
     return { enabled: bool(v.enabled, d.adhkar[key].enabled), offsetMinutes: num(v.offsetMinutes, 0, 180, d.adhkar[key].offsetMinutes) };
   };
+  const pa = isObj(s.prayerAction) ? s.prayerAction : {};
   const ap = isObj(a.afterPrayer) ? a.afterPrayer : {};
   return {
     language: pick(s.language, ['ar', 'en'], d.language),
@@ -66,7 +70,8 @@ function sanitize(input) {
     notifications: {
       preAdhanMinutes: num(n.preAdhanMinutes, 0, 120, d.notifications.preAdhanMinutes),
       atAdhan: bool(n.atAdhan, d.notifications.atAdhan),
-      sound: pick(n.sound, ['default', 'none', 'custom'], d.notifications.sound),
+      sound: pick(n.sound, ['adhan', 'chime', 'custom', 'none'], d.notifications.sound),
+      volume: num(n.volume, 0, 1, d.notifications.volume),
       customSoundPath: typeof n.customSoundPath === 'string' ? n.customSoundPath : '',
     },
     adhkar: {
@@ -76,6 +81,12 @@ function sanitize(input) {
         ...slot('afterPrayer'),
         prayers: Array.isArray(ap.prayers) ? PRAYERS.filter((p) => ap.prayers.includes(p)) : [...d.adhkar.afterPrayer.prayers],
       },
+    },
+    prayerAction: {
+      mode: pick(pa.mode, ['none', 'ask', 'lock'], d.prayerAction.mode),
+      prayers: Array.isArray(pa.prayers) ? PRAYERS.filter((p) => pa.prayers.includes(p)) : [...d.prayerAction.prayers],
+      delayMinutes: num(pa.delayMinutes, 0, 60, d.prayerAction.delayMinutes),
+      snoozeMinutes: num(pa.snoozeMinutes, 1, 60, d.prayerAction.snoozeMinutes),
     },
     tray: { showCountdown: bool(isObj(s.tray) ? s.tray.showCountdown : undefined, d.tray.showCountdown) },
     autostart: bool(s.autostart, d.autostart),

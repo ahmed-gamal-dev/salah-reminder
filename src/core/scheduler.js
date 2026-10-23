@@ -28,6 +28,9 @@ function buildEvents(now, settings) {
         push('pre-adhan', prayer, new Date(t[prayer].getTime() - notifications.preAdhanMinutes * MIN), { prayer, dayKey: dk, minutes: notifications.preAdhanMinutes });
       }
       if (notifications.atAdhan) push('adhan', prayer, t[prayer], { prayer, dayKey: dk });
+      if (settings.prayerAction.mode !== 'none' && settings.prayerAction.prayers.includes(prayer)) {
+        push('prayer-action', prayer, new Date(t[prayer].getTime() + settings.prayerAction.delayMinutes * MIN), { prayer, dayKey: dk, mode: settings.prayerAction.mode });
+      }
       if (adhkar.afterPrayer.enabled && adhkar.afterPrayer.prayers.includes(prayer)) {
         push('adhkar', `after-prayer-${prayer}`, new Date(t[prayer].getTime() + adhkar.afterPrayer.offsetMinutes * MIN), { category: 'after-prayer', prayer, dayKey: dk });
       }
