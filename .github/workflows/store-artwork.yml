@@ -21,9 +21,12 @@ jobs:
       - name: Unpack the verified Store application
         shell: pwsh
         run: |
-          Add-Type -AssemblyName System.IO.Compression.FileSystem
           $package = (Get-ChildItem store-package -Filter '*.appx').FullName
-          [System.IO.Compression.ZipFile]::ExtractToDirectory($package, (Join-Path $PWD 'store-app'))
+          $kits = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits/10/bin'
+          $makeappx = Get-ChildItem "$kits/*/x64/makeappx.exe" | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $makeappx) { throw 'Windows SDK missing' }
+          & $makeappx.FullName unpack /p $package /d (Join-Path $PWD 'store-app') /o
+          if ($LASTEXITCODE -ne 0) { throw 'Package extraction failed' }
       - name: Capture real Windows application windows
         shell: pwsh
         run: node scripts/capture-store-artwork.mjs "${{ github.workspace }}/store-app/app/Salah Reminder.exe" "${{ github.workspace }}/store-screenshots"
