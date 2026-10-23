@@ -306,7 +306,7 @@ app.whenReady().then(() => {
   setInterval(refreshOverlay, 1000);
   powerMonitor.on('resume', () => { reminder.tick(); refreshTray(); refreshOverlay(); });
 
-  const hidden = process.argv.includes('--hidden') || process.argv.some(arg => arg.startsWith('-ServerName:'));
+  const hidden = process.argv.includes('--hidden');
   if (E2E) setTimeout(() => app.quit(), 45000); // allow holding an active adhan past the 15-second reminder timeout
   if (SMOKE) {
     const sum = buildSummary(new Date(), store.get());

@@ -35,6 +35,7 @@ $capabilities = @($manifest.Package.Capabilities.Capability | ForEach-Object { $
 if ('runFullTrust' -notin $capabilities) { throw 'Electron capability missing' }
 $startup = @($application.Extensions.Extension | Where-Object { $_.Category -eq 'windows.startupTask' })
 if ($startup.Count -ne 1 -or $startup[0].StartupTask.TaskId -ne 'SalahReminderStartup') { throw 'Startup task missing' }
+Assert-Equal ($startup[0].GetAttribute('Parameters', 'http://schemas.microsoft.com/appx/manifest/uap/windows10/10')) '--hidden' 'startup arguments'
 if (-not (Test-Path (Join-Path $unpack $startup[0].Executable))) { throw 'Startup executable missing' }
 Add-Type -AssemblyName System.Drawing
 foreach ($asset in @{ 'StoreLogo.png' = @(50,50); 'Square44x44Logo.png' = @(44,44); 'Square150x150Logo.png' = @(150,150); 'Wide310x150Logo.png' = @(310,150) }.GetEnumerator()) {
