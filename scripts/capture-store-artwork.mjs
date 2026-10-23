@@ -1,5 +1,5 @@
 // Captures the released Windows app through its existing SALAH_SHOT helper.
-// Resizes real Electron windows before capture; does not recreate or alter the UI.
+// Captures a larger real Chromium viewport; does not recreate UI or replace application data.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -15,7 +15,7 @@ let exited = false;
 const finished = new Promise((resolve, reject) => {
   child.once('error', reject); child.once('exit', code => { exited = true; code === 0 ? resolve() : reject(new Error(`App exited ${code}`)); });
 });
-const seen = new Set();
+const seen = new Set(); const captures = new Map();
 async function resize(target) {
   const socket = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((resolve, reject) => { socket.addEventListener('open', resolve, { once: true }); socket.addEventListener('error', reject, { once: true }); });
@@ -23,8 +23,14 @@ async function resize(target) {
   socket.addEventListener('message', event => { const d = JSON.parse(event.data); if (!pending.has(d.id)) return; const [resolve, reject] = pending.get(d.id); pending.delete(d.id); d.error ? reject(new Error(JSON.stringify(d.error))) : resolve(d.result); });
   const call = (method, params = {}) => new Promise((resolve, reject) => { const id = ++nextId; pending.set(id, [resolve, reject]); socket.send(JSON.stringify({ id, method, params })); });
   try {
-    const { windowId } = await call('Browser.getWindowForTarget');
-    await call('Browser.setWindowBounds', { windowId, bounds: { width: 1600, height: 1000 } });
+    await call('Emulation.setDeviceMetricsOverride', { width: 1366, height: 900, deviceScaleFactor: 1, mobile: false });
+    for (let i = 0; i < 12; i++) {
+      const result = await call('Runtime.evaluate', { expression: 'Boolean(document.querySelector(\"h1\"))', returnByValue: true });
+      if (result.result.value) break;
+      await new Promise(resolve => setTimeout(resolve, 35));
+    }
+    const shot = await call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: 0, y: 0, width: 1366, height: 900, scale: 1 } });
+    captures.set(target.url.includes('/settings.html') ? 'settings-ar.png' : 'adhkar-ar.png', Buffer.from(shot.data, 'base64'));
   } finally { socket.close(); }
 }
 const deadline = Date.now() + 45000;
@@ -37,6 +43,7 @@ while (!exited && Date.now() < deadline) {
 }
 if (!exited) { child.kill(); throw new Error('Screenshot helper timed out'); }
 await finished;
+for (const [name, image] of captures) await fs.writeFile(path.join(output, name), image);
 for (const name of ['settings-ar.png', 'adhkar-ar.png']) {
   const image = await fs.readFile(path.join(output, name));
   const width = image.readUInt32BE(16), height = image.readUInt32BE(20);
