@@ -4,9 +4,15 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import vm from 'node:vm';
 const require = createRequire(import.meta.url);
-const { identity, appUserModelId } = require('../src/core/windows-store');
+const { identity, appUserModelId, storeVersion } = require('../src/core/windows-store');
 
 describe('Microsoft Store association', () => {
+  it('maps source versions to increasing Store versions with a nonzero major', () => {
+    expect(storeVersion('0.1.4')).toBe('1.1.4');
+    expect(storeVersion('1.0.0')).toBe('2.0.0');
+    expect(() => storeVersion('1.0.0-beta')).toThrow();
+    expect(() => storeVersion('65535.0.0')).toThrow();
+  });
   it('matches the reserved package family to the publisher certificate subject', () => {
     const bits = [...createHash('sha256').update(identity.publisher, 'utf16le').digest().subarray(0, 8)].map(n => n.toString(2).padStart(8, '0')).join('') + '0';
     const alphabet = '0123456789abcdefghjkmnpqrstvwxyz';

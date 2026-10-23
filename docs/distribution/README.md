@@ -77,10 +77,12 @@ Store notifications use the package AUMID instead of the standalone app ID. Star
 
 1. افتح منتج **مواقيت الصلاة والأذكار** في Partner Center: https://partner.microsoft.com/en-us/dashboard/products/9PHFZ849MQFQ/overview .
 2. اضغط **Start submission** ثم افتح **Packages**.
-3. ارفع ملف `Salah-Reminder-Store-0.1.4-x64.appx` نفسه، وليس ZIP نتائج GitHub أو EXE نسخة التنزيل المباشر.
+3. ارفع ملف `Salah-Reminder-Store-1.1.4-x64.appx` نفسه، وليس ZIP نتائج GitHub أو EXE نسخة التنزيل المباشر.
 4. انتظر فحص الحزمة؛ راجع الاسم العربي واسم الناشر والإصدار والمعمارية، ثم احفظ الصفحة. أرسل نص أي تحذير/خطأ كما هو.
 5. نكمّل السعر المجاني والأسواق والتصنيف العمري والخصوصية والوصف والصور. رابط الخصوصية: https://github.com/ahmed-gamal-dev/salah-reminder/blob/main/PRIVACY.md .
 6. في ملاحظات المراجعة، وضّح أن `runFullTrust` مطلوب لتطبيق Electron المكتبي وأيقونة النظام وجدولة التنبيهات وتشغيل الصوت محليًا. لا يحتاج التطبيق دخول حساب ولا يقرأ صفحات المتصفح.
 7. الإرسال النهائي للمراجعة يتم بعد اكتمال باقي الحقول؛ قبول حزمة الرفع وحده لا يعني نشر التطبيق.
 
 Reference: [Microsoft package uploads](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/upload-app-packages).
+
+Store package version mapping: source `0.1.4` → Store `1.1.4.0`. Store rules require a nonzero major and a zero fourth component. The Store-only build consistently adds one to the source major; other distributions keep their source version. Reference: https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/package-version-numbering .

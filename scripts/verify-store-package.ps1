@@ -21,7 +21,7 @@ Assert-Equal $manifest.Package.Identity.Publisher $identity.publisher 'publisher
 Assert-Equal $manifest.Package.Properties.PublisherDisplayName $identity.publisherDisplayName 'publisher display name'
 Assert-Equal $manifest.Package.Properties.DisplayName $identity.displayName 'Arabic product name'
 Assert-Equal $manifest.Package.Identity.ProcessorArchitecture 'x64' 'architecture'
-$version = (node -p "require('./package.json').version") + '.0'
+$version = (node -p "require('./src/core/windows-store').storeVersion(require('./package.json').version)") + '.0'
 Assert-Equal $manifest.Package.Identity.Version $version 'version'
 $languages = @($manifest.Package.Resources.Resource | ForEach-Object { $_.Language })
 if ('ar-SA' -notin $languages -or 'en-US' -notin $languages) { throw 'Arabic/English resources missing' }

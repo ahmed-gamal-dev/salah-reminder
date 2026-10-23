@@ -12,4 +12,12 @@ const identity = Object.freeze({
 function appUserModelId(isStore) {
   return isStore ? `${identity.packageFamilyName}!${identity.applicationId}` : 'io.github.salah-reminder';
 }
-module.exports = { identity, appUserModelId };
+// Store requires a nonzero major and reserves the fourth component as zero.
+// Add one to the source major consistently, including after the source reaches 1.x.
+function storeVersion(source) {
+  if (!/^\d+\.\d+\.\d+$/.test(source)) throw new Error('Expected a stable three-part source version');
+  const parts = source.split('.').map(Number); parts[0]++;
+  if (parts.some(n => !Number.isInteger(n) || n < 0 || n > 65535)) throw new Error('Store version component out of range');
+  return parts.join('.');
+}
+module.exports = { identity, appUserModelId, storeVersion };

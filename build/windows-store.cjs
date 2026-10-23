@@ -1,8 +1,9 @@
 'use strict';
 const base = require('../package.json').build;
-const { identity } = require('../src/core/windows-store');
+const { identity, storeVersion } = require('../src/core/windows-store');
 module.exports = {
   ...base,
+  extraMetadata: { version: storeVersion(require('../package.json').version) },
   directories: { ...base.directories, output: 'dist-store' },
   win: { ...base.win, target: [{ target: 'appx', arch: ['x64'] }], signExecutable: false },
   appx: {
