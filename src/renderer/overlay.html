@@ -2,7 +2,7 @@
 <html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'"><link rel="stylesheet" href="overlay.css"><title>Salah Reminder</title></head>
 <body data-mode="compact"><main id="island">
   <header><button id="toggle" aria-expanded="false" aria-controls="details" aria-describedby="countdown"><span class="clock-group" dir="ltr"><time id="countdown" role="timer" aria-live="off"></time><span id="playing-indicator" aria-hidden="true" hidden><i></i><i></i><i></i></span></span></button><span class="camera-gap" aria-hidden="true"></span><button id="toggle-name" class="name-group" aria-expanded="false" aria-controls="details"><span id="next"></span><span class="moon" aria-hidden="true">☾</span></button><button id="quick-stop" hidden></button></header>
-  <button id="compact-clock" hidden aria-expanded="false" aria-controls="details"><time id="compact-countdown" role="timer" aria-live="off" dir="ltr"></time></button>
+  <button id="compact-clock" hidden aria-expanded="false" aria-controls="details"><span id="compact-next"></span><time id="compact-countdown" role="timer" aria-live="off" dir="ltr"></time></button>
   <section id="details" inert aria-hidden="true">
     <section id="today-panel" hidden><div class="heading"><strong id="today-title"></strong><span id="location"></span></div><ul id="times"></ul></section>
     <section id="alert-panel" hidden><div class="alert-heading"><span class="pulse" aria-hidden="true">☾</span><div><strong id="title"></strong><p id="body"></p></div></div></section>

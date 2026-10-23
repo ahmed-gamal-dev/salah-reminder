@@ -40,6 +40,7 @@ window.banner.onContent((data) => {
   $('next').textContent = data.next;
   $('countdown').textContent = data.countdown;
   $('compact-countdown').textContent = data.countdown;
+  $('compact-next').textContent = data.next;
   $('compact-clock').hidden = !(layout.gap > 0 && mode === 'compact');
   $('compact-clock').setAttribute('aria-label', `${data.nextLabel}: ${data.next}. ${data.countdown}. ${data.today}`);
   $('toggle').setAttribute('aria-label', `${data.nextLabel}: ${data.next}. ${data.today}`);
