@@ -15,7 +15,9 @@
     "dist:mac": "electron-builder --mac",
     "dist:win": "electron-builder --win",
     "dist:linux": "electron-builder --linux",
-    "sounds": "node scripts/gen-sounds.js"
+    "sounds": "node scripts/gen-sounds.js",
+    "build:extension": "node scripts/build-extension.js",
+    "zip:extension": "node scripts/build-extension.js --zip"
   },
   "dependencies": {
     "adhan": "^4.4.6"
@@ -23,6 +25,7 @@
   "devDependencies": {
     "electron": "^45.0.0",
     "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2",
     "vite": "^8.3.5",
     "vitest": "^5.0.5"
   },
