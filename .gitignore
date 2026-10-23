@@ -14,3 +14,5 @@ assets/macos/notch-metrics
 *.p8
 *.provisionprofile
 *.mobileprovision
+
+dist-store/

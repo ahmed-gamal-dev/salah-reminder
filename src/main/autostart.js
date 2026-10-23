@@ -7,6 +7,8 @@ const { app } = require('electron');
 const LINUX_FILE = path.join(process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config'), 'autostart', 'salah-reminder.desktop');
 
 function setAutostart(enabled) {
+  // Store startup is declared in the package manifest and controlled in Windows Settings.
+  if (process.windowsStore) return;
   if (!app.isPackaged) return; // never register the dev electron binary as a login item
   if (process.platform === 'linux') {
     if (!enabled) return fs.rmSync(LINUX_FILE, { force: true });

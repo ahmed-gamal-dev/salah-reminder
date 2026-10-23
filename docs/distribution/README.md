@@ -64,3 +64,23 @@ The release currently provides amd64 `.deb` and `.AppImage` downloads, not a reg
 ## العربية
 
 التجهيز الحالي يضيف سياسة خصوصية، نصوص المتاجر ومسار بناء يدوي للتوقيع الحقيقي. النشر في المتاجر لم يتم بعد. نحتاج حسابات أحمد المفعّلة وتحديد فريقه، ثم إضافة الشهادات والأسرار في إعدادات GitHub. أحمد يتولى قبول الاتفاقيات والدفع والتحقق من الهوية بنفسه. نسخة متجر Apple تحتاج تعديلًا واختبارًا منفصلًا للـ sandbox، ونسخة Microsoft تحتاج هوية الحزمة من حسابه. ملفات إضافات المتصفح متاحة للبناء؛ Firefox يحتاج توقيع Mozilla قبل التثبيت العادي. لينكس يحتاج حزم Flatpak/Snap واختبارها قبل التقديم.
+
+## Owner-linked Windows Store package
+
+`npm run dist:store` on Windows builds an **x64 AppX** using `build/windows-store.cjs`, the reserved Arabic display name and the public owner identity in `src/core/windows-store.js`. Store ID: `9PHFZ849MQFQ`. This upload package is intentionally unsigned; Microsoft signs it after certification. It is not a directly installable/signed EXE and does not overwrite v0.1.4 release assets.
+
+The **Windows Store package** workflow builds on Windows, unpacks the resulting file with the Windows SDK, verifies the exact owner identity, Arabic/English languages, version, logos, full-trust capability, executable and startup declaration, then smoke-tests the unpacked application. Its `microsoft-store-x64` artifact contains the upload file, manifest and SHA-256 report. This is package/build validation, not certification or a test of a Store-installed app on a physical Windows desktop.
+
+Store notifications use the package AUMID instead of the standalone app ID. Startup is declared as a desktop startup task and managed through **Windows Settings → Apps → Startup**; the Store UI shows that guidance instead of modifying the standalone registry login entry. Startup invocation hides Settings on launch. Other build targets retain their existing name/identity and settings behavior.
+
+### الرفع خطوة بخطوة
+
+1. افتح منتج **مواقيت الصلاة والأذكار** في Partner Center: https://partner.microsoft.com/en-us/dashboard/products/9PHFZ849MQFQ/overview .
+2. اضغط **Start submission** ثم افتح **Packages**.
+3. ارفع ملف `Salah-Reminder-Store-0.1.4-x64.appx` نفسه، وليس ZIP نتائج GitHub أو EXE نسخة التنزيل المباشر.
+4. انتظر فحص الحزمة؛ راجع الاسم العربي واسم الناشر والإصدار والمعمارية، ثم احفظ الصفحة. أرسل نص أي تحذير/خطأ كما هو.
+5. نكمّل السعر المجاني والأسواق والتصنيف العمري والخصوصية والوصف والصور. رابط الخصوصية: https://github.com/ahmed-gamal-dev/salah-reminder/blob/main/PRIVACY.md .
+6. في ملاحظات المراجعة، وضّح أن `runFullTrust` مطلوب لتطبيق Electron المكتبي وأيقونة النظام وجدولة التنبيهات وتشغيل الصوت محليًا. لا يحتاج التطبيق دخول حساب ولا يقرأ صفحات المتصفح.
+7. الإرسال النهائي للمراجعة يتم بعد اكتمال باقي الحقول؛ قبول حزمة الرفع وحده لا يعني نشر التطبيق.
+
+Reference: [Microsoft package uploads](https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/msix/upload-app-packages).

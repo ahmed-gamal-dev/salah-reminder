@@ -19,9 +19,9 @@ function chunk(type, data) {
   const crc = Buffer.alloc(4); crc.writeUInt32BE(crc32(td));
   return Buffer.concat([len, td, crc]);
 }
-function png(size, pixel) {
-  const raw = Buffer.alloc((size * 4 + 1) * size);
-  for (let y = 0; y < size; y++) {
+function png(size, pixel, height = size) {
+  const raw = Buffer.alloc((size * 4 + 1) * height);
+  for (let y = 0; y < height; y++) {
     raw[y * (size * 4 + 1)] = 0;
     for (let x = 0; x < size; x++) {
       const [r, g, b, a] = pixel(x, y, size);
@@ -30,7 +30,7 @@ function png(size, pixel) {
     }
   }
   const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(size, 0); ihdr.writeUInt32BE(size, 4); ihdr[8] = 8; ihdr[9] = 6;
+  ihdr.writeUInt32BE(size, 0); ihdr.writeUInt32BE(height, 4); ihdr[8] = 8; ihdr[9] = 6;
   return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
 }
 
@@ -72,3 +72,16 @@ fs.writeFileSync(path.join(out, 'tray.png'), png(32, (x, y, s) => {
   return [0, 1, 2].map((i) => Math.round(bg[i] * (1 - c) + fg[i] * c)).concat(255);
 }));
 console.log('icons written to', out);
+
+// AppX requires explicit artwork; avoid the builder's sample Store/tile logos.
+const appx = path.join(__dirname, '..', 'build', 'appx');
+fs.mkdirSync(appx, { recursive: true });
+function storePixel(x, y, size) {
+  const c = crescentCoverage(x, y, size);
+  const bg = [0x0f, 0x4c, 0x3a], fg = [0xf5, 0xe6, 0xb3];
+  return [0, 1, 2].map(i => Math.round(bg[i] * (1 - c) + fg[i] * c)).concat(255);
+}
+for (const [name, size] of [['StoreLogo', 50], ['Square150x150Logo', 150], ['Square44x44Logo', 44]]) {
+  fs.writeFileSync(path.join(appx, name + '.png'), png(size, storePixel));
+}
+fs.writeFileSync(path.join(appx, 'Wide310x150Logo.png'), png(310, (x, y) => storePixel(x - 80, y, 150), 150));

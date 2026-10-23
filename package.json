@@ -18,7 +18,8 @@
     "sounds": "node scripts/gen-sounds.js",
     "build:extension": "node scripts/build-extension.js",
     "zip:extension": "node scripts/build-extension.js --zip",
-    "prestart": "node scripts/build-notch-helper.js"
+    "prestart": "node scripts/build-notch-helper.js",
+    "dist:store": "electron-builder --config build/windows-store.cjs --win appx --x64 --publish never"
   },
   "dependencies": {
     "adhan": "^4.4.6"

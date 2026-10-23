@@ -147,7 +147,9 @@
         row(t.language, select([['ar', 'العربية'], ['en', 'English']], s.language, (v) => { s.language = v; render(); })),
         row(t.h12, check(() => s.hour12, (v) => { s.hour12 = v; })),
         row(t.countdown, check(() => s.tray.showCountdown, (v) => { s.tray.showCountdown = v; })),
-        row(t.autostart, check(() => s.autostart, (v) => { s.autostart = v; }))),
+        row(t.autostart, state.windowsStore
+          ? el('span', { textContent: s.language === 'ar' ? 'من إعدادات ويندوز ← التطبيقات ← بدء التشغيل' : 'Manage in Windows Settings → Apps → Startup' })
+          : check(() => s.autostart, (v) => { s.autostart = v; }))),
       el('div', { className: 'actions' }, status),
     );
     renderHero();

@@ -30,7 +30,7 @@ if (!app.requestSingleInstanceLock()) {
   app.quit();
   process.exit(0);
 }
-app.setAppUserModelId('io.github.salah-reminder');
+app.setAppUserModelId(require('../core/windows-store').appUserModelId(process.windowsStore));
 
 let store, tray, reminder, settingsWin, adhkarWin, playerWin;
 let adhkarData;
@@ -238,6 +238,7 @@ ipcMain.handle('state:get', () => {
     summary: buildSummary(new Date(), settings),
     strings: Object.fromEntries(Object.entries(strings(settings.language)).filter(([, v]) => typeof v !== 'function')),
     platform: process.platform,
+    windowsStore: Boolean(process.windowsStore),
     version: app.getVersion(),
   };
 });
@@ -305,7 +306,7 @@ app.whenReady().then(() => {
   setInterval(refreshOverlay, 1000);
   powerMonitor.on('resume', () => { reminder.tick(); refreshTray(); refreshOverlay(); });
 
-  const hidden = process.argv.includes('--hidden');
+  const hidden = process.argv.includes('--hidden') || process.argv.some(arg => arg.startsWith('-ServerName:'));
   if (E2E) setTimeout(() => app.quit(), 45000); // allow holding an active adhan past the 15-second reminder timeout
   if (SMOKE) {
     const sum = buildSummary(new Date(), store.get());

@@ -1,0 +1,51 @@
+name: Windows Store package
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'build/windows-store*'
+      - 'build/appx/**'
+      - 'src/core/windows-store.js'
+      - 'scripts/verify-store-package.ps1'
+      - '.github/workflows/windows-store.yml'
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: windows-latest
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run dist:store
+      - name: Inspect package identity and Store manifest
+        shell: pwsh
+        run: ./scripts/verify-store-package.ps1
+      - name: Smoke-test packaged Windows executable
+        shell: pwsh
+        run: |
+          $env:SALAH_SMOKE = '1'
+          $app = Join-Path $PWD 'dist-store/win-unpacked/Salah Reminder.exe'
+          $stdout = Join-Path $PWD 'dist-store/smoke.log'
+          $stderr = Join-Path $PWD 'dist-store/smoke-errors.log'
+          $process = Start-Process -FilePath $app -ArgumentList '--hidden' -PassThru -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+          if (-not $process.WaitForExit(30000)) { $process.Kill(); throw 'Smoke test timed out' }
+          Get-Content $stdout
+          if ($process.ExitCode -ne 0) { Get-Content $stderr; throw 'App launch failed' }
+          if (-not (Select-String -Path $stdout -Pattern 'SMOKE next=' -Quiet)) { throw 'Prayer calculation smoke output missing' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: microsoft-store-x64
+          if-no-files-found: error
+          path: |
+            dist-store/*.appx
+            dist-store/store-verification.json
+            dist-store/AppxManifest.xml
+            dist-store/smoke*.log
