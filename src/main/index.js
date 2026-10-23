@@ -97,7 +97,7 @@ function playSound() {
   const file = soundFile(settings);
   if (!file) return false;
   const win = ensurePlayer();
-  const send = () => { playing = true; win.webContents.send('sound:play', { url: pathToFileURL(file).href, volume: settings.notifications.volume }); refreshTray(); };
+  const send = () => { playing = true; win.webContents.send('sound:play', { url: pathToFileURL(file).href, volume: settings.notifications.volume }); refreshTray(); refreshOverlay(); };
   win.webContents.isLoading() ? win.webContents.once('did-finish-load', send) : send();
   return true;
 }
@@ -106,6 +106,7 @@ function stopSound() {
   if (playerWin && !playerWin.isDestroyed()) playerWin.webContents.send('sound:stop');
   playing = false;
   refreshTray();
+  refreshOverlay();
 }
 
 // ---------- notifications ----------
@@ -126,13 +127,13 @@ function showBanner({ title, body, onClick, sound = false }, preview = false) {
   const settings = store.get();
   if (process.platform !== 'darwin' || (!preview && !settings.notifications.topBanner)) return;
   bannerAction = onClick || openSettings;
-  const ar = settings.language === 'ar';
-  overlay.show({ title, body, sound, language: settings.language,
-    open: ar ? 'فتح' : 'Open', stop: ar ? 'إيقاف الصوت' : 'Stop sound', dismiss: ar ? 'إغلاق' : 'Dismiss' });
+  refreshOverlay();
+  overlay.show({ title, body, sound });
 }
-ipcMain.on('overlay:dismiss', (e) => { if (overlay.owns(e)) overlay.hide(); });
-ipcMain.on('overlay:stop', (e) => { if (overlay.owns(e)) { stopSound(); overlay.hide(); } });
-ipcMain.on('overlay:open', (e) => { if (overlay.owns(e)) { overlay.hide(); if (bannerAction) bannerAction(); } });
+ipcMain.on('overlay:dismiss', (e) => { if (overlay.owns(e)) overlay.collapse(); });
+ipcMain.on('overlay:stop', (e) => { if (overlay.owns(e)) { stopSound(); overlay.collapse(); } });
+ipcMain.on('overlay:today', (e) => { if (overlay.owns(e)) overlay.toggleToday(); });
+ipcMain.on('overlay:open', (e) => { if (overlay.owns(e)) { const action = overlay.state.view === 'alert' ? bannerAction : openSettings; overlay.collapse(); if (action) action(); } });
 
 // ---------- prayer-time action (ask / lock) ----------
 const run = (cmd, args) => new Promise((resolve, reject) => execFile(cmd, args, (err) => (err ? reject(err) : resolve())));
@@ -173,6 +174,19 @@ function onEvent(e) {
   else if (e.type === 'adhan') notify({ title: s.adhanTitle(prayer), body: s.adhanBody, sound: true });
   else if (e.type === 'prayer-action') handlePrayerAction(e, prayer);
   else if (e.type === 'adhkar') notify({ title: s.adhkarTitle[e.category], body: s.adhkarBody, onClick: () => openAdhkar(e.category) });
+}
+
+// Cache astronomical calculations; only the compact clock is refreshed each second.
+let overlayCache = { key: '', summary: null };
+function refreshOverlay() {
+  if (process.platform !== 'darwin' || !store) return;
+  const now = new Date(Date.now() + clockOffset);
+  const settings = store.get();
+  const key = JSON.stringify([settings, Math.floor(now.getTime() / 60000)]);
+  if (overlayCache.key !== key || now >= overlayCache.summary?.next.at) {
+    overlayCache = { key, summary: buildSummary(now, settings) };
+  }
+  overlay.update(overlayCache.summary, settings, now, playing);
 }
 
 // ---------- tray ----------
@@ -232,6 +246,7 @@ ipcMain.handle('settings:save', (_e, incoming) => {
   const saved = store.set(incoming);
   setAutostart(saved.autostart);
   refreshTray();
+  refreshOverlay();
   if (prevLang !== saved.language) {
     for (const w of [settingsWin, adhkarWin]) if (w && !w.isDestroyed()) w.setTitle(strings(saved.language).app);
   }
@@ -259,7 +274,7 @@ ipcMain.handle('notify:test', () => {
 ipcMain.handle('overlay:preview', () => { const s = strings(store.get().language); showBanner({ title: s.app, body: s.adhanBody }, true); });
 ipcMain.handle('sound:test', () => { playSound(); });
 ipcMain.handle('sound:stop', () => { stopSound(); });
-ipcMain.on('sound:ended', () => { playing = false; refreshTray(); });
+ipcMain.on('sound:ended', () => { playing = false; refreshTray(); refreshOverlay(); });
 ipcMain.on('sound:started', (_e, info) => { if (E2E) console.log(`E2E sound started duration=${info.duration.toFixed(1)}s volume=${info.volume}`); });
 
 ipcMain.handle('adhkar:get', (_e, category) => (CATEGORIES.includes(category) ? adhkarData[category] : []));
@@ -285,10 +300,12 @@ app.whenReady().then(() => {
   }
   reminder = new Reminder({ getSettings: () => store.get(), onEvent: (e) => { if (E2E) console.log(`E2E event ${e.id}`); onEvent(e); }, now: () => new Date(Date.now() + clockOffset) });
   reminder.start();
-  powerMonitor.on('resume', () => { reminder.tick(); refreshTray(); });
+  refreshOverlay();
+  setInterval(refreshOverlay, 1000);
+  powerMonitor.on('resume', () => { reminder.tick(); refreshTray(); refreshOverlay(); });
 
   const hidden = process.argv.includes('--hidden');
-  if (E2E) setTimeout(() => app.quit(), 20000);
+  if (E2E) setTimeout(() => app.quit(), 45000); // allow holding an active adhan past the 15-second reminder timeout
   if (SMOKE) {
     const sum = buildSummary(new Date(), store.get());
     console.log(`SMOKE next=${sum.next.name} in=${sum.next.countdown} title="${sum.trayTitle}"`);

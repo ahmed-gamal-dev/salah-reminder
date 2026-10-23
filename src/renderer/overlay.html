@@ -1,3 +1,10 @@
 <!doctype html>
 <html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'"><link rel="stylesheet" href="overlay.css"><title>Salah Reminder</title></head>
-<body><main><div class="moon" aria-hidden="true">☾</div><section><strong id="title"></strong><p id="body"></p><nav><button id="open"></button><button id="stop"></button><button id="dismiss"></button></nav></section></main><script src="overlay.js"></script></body></html>
+<body data-mode="compact"><main>
+  <header><button id="toggle" aria-expanded="false" aria-controls="details" aria-describedby="countdown"><span class="moon" aria-hidden="true">☾</span><span id="next"></span><time id="countdown" role="timer" aria-live="off" dir="ltr"></time><span id="chevron" aria-hidden="true">⌄</span></button><button id="quick-stop" hidden></button></header>
+  <section id="details" hidden>
+    <section id="today-panel" hidden><div class="heading"><strong id="today-title"></strong><span id="location"></span></div><ul id="times"></ul></section>
+    <section id="alert-panel" hidden><div class="alert-heading"><span class="pulse" aria-hidden="true">☾</span><div><strong id="title"></strong><p id="body"></p></div></div></section>
+    <nav><button id="open"></button><button id="stop" hidden></button><button id="dismiss"></button></nav>
+  </section>
+</main><script src="overlay.js"></script></body></html>
