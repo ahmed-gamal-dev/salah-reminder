@@ -119,3 +119,7 @@ npm run dist   # بناء حزمة للنظام الحالي
 ---
 
 MIT © Ahmed Gamal
+
+## Signing and stores / التوقيع والمتاجر
+
+See [distribution preparation](docs/distribution/README.md), [privacy policy](PRIVACY.md) and [store listing drafts](docs/distribution/listing-copy.md). The signed-build workflow is manual and needs owner credentials; GitHub release availability does not imply store approval.

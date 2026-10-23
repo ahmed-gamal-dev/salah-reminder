@@ -1,0 +1,74 @@
+name: Signed direct-download build
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Platform (requires the owner's signing credentials)
+        required: true
+        type: choice
+        options: [macos, windows]
+permissions:
+  contents: read
+jobs:
+  sign:
+    runs-on: ${{ inputs.platform == 'macos' && 'macos-latest' || 'windows-latest' }}
+    env:
+      CSC_LINK: ${{ inputs.platform == 'macos' && secrets.MAC_CSC_LINK || '' }}
+      CSC_KEY_PASSWORD: ${{ inputs.platform == 'macos' && secrets.MAC_CSC_KEY_PASSWORD || '' }}
+      WIN_CSC_LINK: ${{ inputs.platform == 'windows' && secrets.WIN_CSC_LINK || '' }}
+      WIN_CSC_KEY_PASSWORD: ${{ inputs.platform == 'windows' && secrets.WIN_CSC_KEY_PASSWORD || '' }}
+      APPLE_ID: ${{ inputs.platform == 'macos' && secrets.APPLE_ID || '' }}
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ inputs.platform == 'macos' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
+      APPLE_TEAM_ID: ${{ inputs.platform == 'macos' && secrets.APPLE_TEAM_ID || '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Require signing credentials (never fall back to unsigned)
+        shell: bash
+        env:
+          TARGET_PLATFORM: ${{ inputs.platform }}
+        run: |
+          node - <<'JS'
+          const keys = process.env.TARGET_PLATFORM === 'macos' ? ['CSC_LINK', 'CSC_KEY_PASSWORD'] : ['WIN_CSC_LINK', 'WIN_CSC_KEY_PASSWORD'];
+          if (process.env.TARGET_PLATFORM === 'macos') keys.push('APPLE_ID', 'APPLE_APP_SPECIFIC_PASSWORD', 'APPLE_TEAM_ID');
+          if (keys.some(k => !process.env[k])) throw new Error('Configure the owner signing secrets documented in docs/distribution/README.md');
+          JS
+      - run: npm ci
+      - run: npm test
+      - name: Build signed macOS package and notarize
+        if: inputs.platform == 'macos'
+        run: npm run dist:mac -- --config build/signed.cjs --publish never
+      - name: Verify macOS identity and notarization
+        if: inputs.platform == 'macos'
+        shell: bash
+        run: |
+          set -euo pipefail
+          app="$(find dist -maxdepth 2 -name 'Salah Reminder.app' -print -quit)"
+          test -n "$app"
+          codesign --verify --deep --strict "$app"
+          codesign -dv --verbose=4 "$app" 2>&1 | grep -q 'Authority=Developer ID Application:'
+          xcrun stapler validate "$app"
+          spctl --assess --type execute --verbose=2 "$app"
+      - name: Build signed Windows installer
+        if: inputs.platform == 'windows'
+        run: npm run dist:win -- --config build/signed.cjs --publish never
+      - name: Verify Windows installer signature
+        if: inputs.platform == 'windows'
+        shell: pwsh
+        run: |
+          $files = @(Get-ChildItem dist -Filter '*.exe')
+          if ($files.Count -eq 0) { throw 'Installer missing' }
+          foreach ($file in $files) {
+            if ((Get-AuthenticodeSignature $file.FullName).Status -ne 'Valid') { throw "Invalid signature: $($file.Name)" }
+          }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: signed-${{ inputs.platform }}-${{ github.sha }}
+          if-no-files-found: error
+          path: |
+            dist/*.dmg
+            dist/*.zip
+            dist/*.exe
