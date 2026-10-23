@@ -22,16 +22,51 @@
   "devDependencies": {
     "electron": "^45.0.0",
     "electron-builder": "^26.15.3",
+    "vite": "^8.3.5",
     "vitest": "^5.0.5"
   },
   "build": {
     "appId": "io.github.salah-reminder",
     "productName": "Salah Reminder",
-    "files": ["src/**/*", "data/**/*", "assets/**/*", "package.json"],
-    "directories": { "output": "dist" },
-    "mac": { "category": "public.app-category.lifestyle", "target": ["dmg", "zip"], "icon": "assets/icon.png", "extendInfo": { "LSUIElement": true } },
-    "win": { "target": ["nsis", "zip"], "icon": "assets/icon.png" },
-    "linux": { "target": ["AppImage", "deb"], "category": "Utility", "icon": "assets/icon.png", "maintainer": "Ahmed Gamal <44279509+ahmed-gamal-dev@users.noreply.github.com>" },
-    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true }
+    "files": [
+      "src/**/*",
+      "data/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "category": "public.app-category.lifestyle",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "assets/icon.png",
+      "extendInfo": {
+        "LSUIElement": true
+      }
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "zip"
+      ],
+      "icon": "assets/icon.png"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility",
+      "icon": "assets/icon.png",
+      "maintainer": "Ahmed Gamal <44279509+ahmed-gamal-dev@users.noreply.github.com>"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }
